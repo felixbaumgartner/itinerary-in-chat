@@ -28,7 +28,7 @@ const sampleActivities: ActivityOption[] = [
   {
     id: '3',
     title: 'Vondelpark Guided Family Bike Tour',
-    description: 'A fun 2-hour guided bicycle tour through Amsterdam's famous park, with child-sized bikes and seats available.',
+    description: "A fun 2-hour guided bicycle tour through Amsterdam's famous park, with child-sized bikes and seats available.",
     price: '€29 per person',
     image: 'https://images.unsplash.com/photo-1517736996303-4eec4a66bb17?q=80&w=2874&auto=format&fit=crop',
     rating: 9.4,
