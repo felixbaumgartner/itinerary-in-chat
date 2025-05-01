@@ -7,6 +7,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import SearchResults from './SearchResults';
 import { useToast } from '@/hooks/use-toast';
 import ChatInterface from './ChatInterface';
+import Confetti from './Confetti';
 
 interface SearchFormProps {
   onBookActivity: (activity: any) => void;
@@ -20,6 +21,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ onBookActivity }) => {
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [showConcierge, setShowConcierge] = useState(false);
   const [bookedProperty, setBookedProperty] = useState<any>(null);
+  const [showConfetti, setShowConfetti] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,10 +38,19 @@ const SearchForm: React.FC<SearchFormProps> = ({ onBookActivity }) => {
       description: "Your stay at " + property.name + " is confirmed.",
     });
     
-    // Show concierge after a short delay
+    // Show concierge and confetti after a short delay
     setTimeout(() => {
       setShowConcierge(true);
+      setShowConfetti(true);
     }, 1500);
+  };
+
+  // Reset confetti when dialog closes
+  const handleDialogOpenChange = (open: boolean) => {
+    setShowConcierge(open);
+    if (!open) {
+      setShowConfetti(false);
+    }
   };
 
   return (
@@ -135,7 +146,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ onBookActivity }) => {
       </Dialog>
 
       {/* Trip Assistant Dialog - smaller and positioned in lower right */}
-      <Dialog open={showConcierge} onOpenChange={setShowConcierge}>
+      <Dialog open={showConcierge} onOpenChange={handleDialogOpenChange}>
         <DialogContent className="sm:max-w-[400px] w-[95vw] h-[500px] max-h-[80vh] p-0 overflow-hidden fixed bottom-6 right-6 sm:bottom-8 sm:right-8 shadow-2xl rounded-lg">
           <div className="flex flex-col h-full">
             <div className="w-full h-full overflow-hidden">
@@ -144,6 +155,9 @@ const SearchForm: React.FC<SearchFormProps> = ({ onBookActivity }) => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Confetti component */}
+      <Confetti active={showConfetti} duration={5000} />
     </>
   );
 };
