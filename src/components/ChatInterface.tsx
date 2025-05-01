@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { SendIcon, Calendar, Taxi, Ticket } from 'lucide-react';
+import { SendIcon, Calendar, Ticket } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { format, addDays } from "date-fns";
@@ -230,24 +230,22 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
       // Format the date string for display
       const dateString = updatedBooking.date ? format(updatedBooking.date, "MMMM d, yyyy") : "selected date";
       
-      // Simulate weather info
-      const weatherTemp = "25°C";
-      const weatherCondition = "sunny";
+      // Create a formatted weather info and icon without using Sun component
+      const weatherInfo = (
+        <div className="flex items-center gap-2 mt-2 text-booking-blue">
+          <Calendar className="h-5 w-5" />
+          <Ticket className="h-5 w-5" />
+          <span className="font-medium">{dateString} · {updatedBooking.time} · 25°C sunny</span>
+        </div>
+      );
       
       setMessages(prev => [
         ...prev,
         {
-          content: `Perfect! I've booked your visit to ${updatedBooking.activity.title} for ${dateString} at ${updatedBooking.time}. You'll receive a confirmation email with your e-tickets shortly. The weather is expected to be ${weatherTemp} and ${weatherCondition}, so don't forget sunscreen! Is there anything else you'd like help with for your Amsterdam trip?`,
+          content: `Perfect! I've booked your visit to ${updatedBooking.activity.title} for ${dateString} at ${updatedBooking.time}. You'll receive a confirmation email with your e-tickets shortly. The weather is expected to be 25°C and sunny, so don't forget sunscreen! Is there anything else you'd like help with for your Amsterdam trip?`,
           sender: 'assistant',
           timestamp: new Date(),
-          icon: (
-            <div className="flex items-center gap-2 mt-2 text-booking-blue">
-              <Sun className="h-5 w-5" />
-              <Calendar className="h-5 w-5" />
-              <Clock className="h-5 w-5" />
-              <span className="font-medium">{dateString} · ${updatedBooking.time} · ${weatherTemp} ${weatherCondition}</span>
-            </div>
-          )
+          icon: weatherInfo
         }
       ]);
       
@@ -325,7 +323,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
           timestamp: new Date(),
           icon: (
             <div className="flex items-center gap-2 mt-2 text-booking-blue">
-              <Taxi className="h-5 w-5" />
+              <Ticket className="h-5 w-5" />
               <Calendar className="h-5 w-5" />
               <span className="font-medium">Jul 15, 2025 · 14:30 · Airport Transfer</span>
             </div>

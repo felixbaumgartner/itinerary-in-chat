@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from '@/components/ui/button';
-import { Check, Calendar as CalendarIcon, Clock, Sun } from 'lucide-react';
+import { Calendar as CalendarIcon, Ticket } from 'lucide-react';
 import { Calendar } from "@/components/ui/calendar";
 
 export interface ActivityOption {
@@ -157,7 +157,7 @@ const ChatMessage: React.FC<MessageProps> = ({
                         className="bg-booking-blue hover:bg-booking-navy text-white"
                         onClick={() => handleBookActivity(option)}
                       >
-                        <Check className="mr-1 h-4 w-4" />
+                        <Ticket className="mr-1 h-4 w-4" />
                         Book now
                       </Button>
                     </div>
@@ -180,3 +180,4 @@ const ChatMessage: React.FC<MessageProps> = ({
 };
 
 export default ChatMessage;
+
