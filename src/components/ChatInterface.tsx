@@ -10,7 +10,7 @@ const sampleActivities: ActivityOption[] = [
   {
     id: '1',
     title: 'Anne Frank House Museum',
-    description: 'Explore the hiding place where Anne Frank wrote her famous diary during World War II. This moving museum presents the story of her life and times.',
+    description: "Explore the hiding place where Anne Frank wrote her famous diary during World War II. This moving museum presents the story of her life and times.",
     price: '€14 per person',
     image: 'https://images.unsplash.com/photo-1584260968834-311ce8f693d5?q=80&w=2946&auto=format&fit=crop',
     rating: 8.9,
