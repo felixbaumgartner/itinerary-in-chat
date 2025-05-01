@@ -62,14 +62,34 @@ const ChatMessage: React.FC<MessageProps> = ({
   });
 
   const handleBookActivity = (activity: ActivityOption) => {
+    console.log("Book activity clicked:", activity.title);
     if (onBookActivity) {
       onBookActivity(activity);
     }
   };
 
   const handleTimeSelect = (time: string) => {
+    console.log("Time slot selected:", time);
     if (onTimeSelect) {
       onTimeSelect(time);
+    }
+  };
+
+  const handleConfirmClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log("Confirm button clicked");
+    if (onConfirm) {
+      onConfirm();
+    }
+  };
+
+  const handleCancelClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log("Cancel button clicked");
+    if (onCancel) {
+      onCancel();
     }
   };
 
@@ -100,21 +120,21 @@ const ChatMessage: React.FC<MessageProps> = ({
           )}
         </div>
 
-        {/* Confirmation Actions */}
-        {confirmationActions && onConfirm && onCancel && (
+        {/* Confirmation Actions - Improved interactive elements */}
+        {confirmationActions && (
           <div className="mt-3 flex gap-3 justify-center">
             <Button 
               variant="outline" 
-              className="bg-green-50 hover:bg-green-100 text-green-700 border-green-300 flex gap-2"
-              onClick={onConfirm}
+              className="bg-green-50 hover:bg-green-100 text-green-700 border-green-300 flex gap-2 relative z-10"
+              onClick={handleConfirmClick}
             >
               <Check className="h-4 w-4" />
               Confirm Booking
             </Button>
             <Button 
               variant="outline" 
-              className="bg-red-50 hover:bg-red-100 text-red-700 border-red-300 flex gap-2"
-              onClick={onCancel}
+              className="bg-red-50 hover:bg-red-100 text-red-700 border-red-300 flex gap-2 relative z-10"
+              onClick={handleCancelClick}
             >
               <X className="h-4 w-4" />
               Cancel
@@ -122,9 +142,9 @@ const ChatMessage: React.FC<MessageProps> = ({
           </div>
         )}
 
-        {/* Date Selector */}
+        {/* Date Selector - Improved z-index and positioning */}
         {dateSelector && onDateSelect && (
-          <div className="mt-3 bg-white p-4 rounded-md shadow-sm border border-gray-100">
+          <div className="mt-3 bg-white p-4 rounded-md shadow-sm border border-gray-100 relative z-10">
             <div className="flex items-center mb-2">
               <CalendarIcon className="mr-2 h-5 w-5 text-booking-blue" />
               <h4 className="font-medium text-booking-blue">Select a date for your visit</h4>
@@ -137,20 +157,21 @@ const ChatMessage: React.FC<MessageProps> = ({
                 return date < new Date() || (dateSelector.endDate ? date > dateSelector.endDate : false);
               }}
               initialFocus
+              className="relative z-20"
             />
           </div>
         )}
 
-        {/* Time Slots */}
+        {/* Time Slots - Improved interactive styling */}
         {timeSlots && timeSlots.length > 0 && (
-          <div className="mt-3 bg-white p-4 rounded-md shadow-sm border border-gray-100">
+          <div className="mt-3 bg-white p-4 rounded-md shadow-sm border border-gray-100 relative z-10">
             <h4 className="font-medium text-booking-blue mb-3">Available Time Slots</h4>
             <div className="grid grid-cols-3 gap-2">
               {timeSlots.map((time, index) => (
                 <Button
                   key={index}
                   variant="outline"
-                  className="text-sm text-booking-blue hover:bg-booking-lightBlue hover:text-booking-navy"
+                  className="text-sm text-booking-blue hover:bg-booking-lightBlue hover:text-booking-navy focus:ring-2 focus:ring-booking-blue"
                   onClick={() => handleTimeSelect(time)}
                 >
                   {time}
@@ -160,11 +181,11 @@ const ChatMessage: React.FC<MessageProps> = ({
           </div>
         )}
 
-        {/* Activity Options */}
+        {/* Activity Options - Improved card interaction */}
         {options && options.length > 0 && (
           <div className="mt-3 space-y-3">
             {options.map((option) => (
-              <Card key={option.id} className="overflow-hidden hover:shadow-md transition-shadow">
+              <Card key={option.id} className="overflow-hidden hover:shadow-md transition-shadow relative z-10">
                 <div className="flex flex-col sm:flex-row">
                   <div 
                     className="w-full sm:w-1/3 h-32 sm:h-auto bg-cover bg-center" 
@@ -182,7 +203,7 @@ const ChatMessage: React.FC<MessageProps> = ({
                       <div className="font-bold text-booking-green">{option.price}</div>
                       <Button 
                         size="sm" 
-                        className="bg-booking-blue hover:bg-booking-navy text-white"
+                        className="bg-booking-blue hover:bg-booking-navy text-white relative z-20"
                         onClick={() => handleBookActivity(option)}
                       >
                         <Ticket className="mr-1 h-4 w-4" />
