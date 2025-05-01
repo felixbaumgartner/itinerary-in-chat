@@ -45,46 +45,69 @@ const SearchForm: React.FC<SearchFormProps> = ({ onBookActivity }) => {
   return (
     <>
       <div className="container mx-auto px-6 lg:px-12 relative">
-        <form onSubmit={handleSubmit} className="flex flex-col md:flex-row gap-0 md:gap-0 bg-white rounded-md overflow-hidden shadow-lg">
-          <div className="flex-1 border-2 border-booking-yellow md:border-r-0 md:rounded-l-md flex items-center relative pl-10 py-3">
-            <Search className="h-5 w-5 text-gray-400 absolute left-3" />
-            <Input 
-              type="text" 
-              placeholder="Where are you going?" 
-              value={destination}
-              onChange={(e) => setDestination(e.target.value)}
-              className="border-0 p-0 focus:outline-none focus:ring-0 text-lg"
-            />
+        <form 
+          onSubmit={handleSubmit} 
+          className="bg-white rounded-md overflow-hidden shadow-lg border border-booking-yellow"
+        >
+          <div className="flex flex-col md:flex-row">
+            {/* Destination input */}
+            <div className="flex-1 flex items-center relative p-3 md:p-4 border-b md:border-b-0 md:border-r border-gray-200">
+              <Search className="h-5 w-5 text-gray-400 mr-3" />
+              <div className="flex flex-col flex-1">
+                <label htmlFor="destination" className="text-xs text-gray-500 font-medium">Where are you going?</label>
+                <Input 
+                  id="destination"
+                  type="text" 
+                  placeholder="Where are you going?" 
+                  value={destination}
+                  onChange={(e) => setDestination(e.target.value)}
+                  className="border-0 p-0 h-auto focus:outline-none focus:ring-0 text-base font-normal"
+                />
+              </div>
+            </div>
+            
+            {/* Date range input */}
+            <div className="flex-1 flex items-center relative p-3 md:p-4 border-b md:border-b-0 md:border-r border-gray-200">
+              <Calendar className="h-5 w-5 text-gray-400 mr-3" />
+              <div className="flex flex-col flex-1">
+                <label htmlFor="dates" className="text-xs text-gray-500 font-medium">Check-in - Check-out</label>
+                <Input 
+                  id="dates"
+                  type="text" 
+                  placeholder="Add dates" 
+                  value={dateRange}
+                  onChange={(e) => setDateRange(e.target.value)}
+                  className="border-0 p-0 h-auto focus:outline-none focus:ring-0 text-base font-normal"
+                />
+              </div>
+            </div>
+            
+            {/* Guests input */}
+            <div className="flex-1 flex items-center relative p-3 md:p-4">
+              <User className="h-5 w-5 text-gray-400 mr-3" />
+              <div className="flex flex-col flex-1">
+                <label htmlFor="guests" className="text-xs text-gray-500 font-medium">Who's coming?</label>
+                <Input 
+                  id="guests"
+                  type="text" 
+                  placeholder="Add guests" 
+                  value={guests}
+                  onChange={(e) => setGuests(e.target.value)}
+                  className="border-0 p-0 h-auto focus:outline-none focus:ring-0 text-base font-normal"
+                />
+              </div>
+            </div>
+            
+            {/* Search button - positioned properly in mobile and desktop */}
+            <div className="p-3 md:p-0">
+              <Button 
+                type="submit" 
+                className="w-full md:h-full md:rounded-none md:rounded-r-md bg-booking-yellow hover:bg-booking-yellow/90 text-black font-medium px-6"
+              >
+                Search
+              </Button>
+            </div>
           </div>
-          
-          <div className="border-2 border-booking-yellow md:border-r-0 md:border-l-0 flex items-center relative pl-10 py-3">
-            <Calendar className="h-5 w-5 text-gray-400 absolute left-3" />
-            <Input 
-              type="text" 
-              placeholder="Check-in - Check-out" 
-              value={dateRange}
-              onChange={(e) => setDateRange(e.target.value)}
-              className="border-0 p-0 focus:outline-none focus:ring-0 text-lg w-48"
-            />
-          </div>
-          
-          <div className="border-2 border-booking-yellow md:border-r-0 md:border-l-0 flex items-center relative pl-10 py-3">
-            <User className="h-5 w-5 text-gray-400 absolute left-3" />
-            <Input 
-              type="text" 
-              placeholder="2 adults · 0 children" 
-              value={guests}
-              onChange={(e) => setGuests(e.target.value)}
-              className="border-0 p-0 focus:outline-none focus:ring-0 text-lg w-48"
-            />
-          </div>
-          
-          <Button 
-            type="submit" 
-            className="bg-booking-button hover:bg-booking-buttonHover text-white py-2 px-8 text-lg font-medium rounded-none md:rounded-r-md h-full md:w-auto"
-          >
-            Search
-          </Button>
         </form>
         
         <div className="flex flex-wrap gap-4 mt-4">
