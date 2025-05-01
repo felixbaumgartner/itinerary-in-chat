@@ -43,60 +43,9 @@ interface ChatInterfaceProps {
 const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
   const [messages, setMessages] = useState<MessageProps[]>([
     {
-      content: "Hello! Congratulations on booking your stay in Amsterdam! I'm your personal Trip Assistant. How can I help you plan your visit?",
+      content: "Hello! I'm your personal Trip Assistant for your upcoming stay in Amsterdam. How can I help you plan your visit?",
       sender: 'assistant',
-      timestamp: new Date(new Date().getTime() - 86400000), // 1 day ago
-    },
-    {
-      content: "Hi! We're excited for our trip. What are some good family activities in Amsterdam?",
-      sender: 'user',
-      timestamp: new Date(new Date().getTime() - 86300000), // 23 hours 58 minutes ago
-    },
-    {
-      content: "Amsterdam has many great family-friendly activities! Here are some top recommendations:",
-      sender: 'assistant',
-      timestamp: new Date(new Date().getTime() - 86200000), // 23 hours 56 minutes ago
-      options: sampleActivities
-    },
-    {
-      content: "The Anne Frank House looks interesting. Do we need to book tickets in advance?",
-      sender: 'user',
-      timestamp: new Date(new Date().getTime() - 86100000), // 23 hours 55 minutes ago
-    },
-    {
-      content: "Yes, the Anne Frank House is very popular and tickets often sell out quickly. I recommend booking at least two weeks in advance. Would you like me to check available tickets for your dates (Jul 15-20)?",
-      sender: 'assistant',
-      timestamp: new Date(new Date().getTime() - 86000000), // 23 hours 53 minutes ago
-    },
-    {
-      content: "Yes please, can you check for July 16th in the morning?",
-      sender: 'user',
-      timestamp: new Date(new Date().getTime() - 3800000), // 1 hour 3 minutes ago
-    },
-    {
-      content: "Great news! I found tickets available for July 16th at 10:00 AM. There are enough spots for your group (2 adults). The total cost would be €28. Would you like to book this?",
-      sender: 'assistant',
-      timestamp: new Date(new Date().getTime() - 3700000), // 1 hour 1 minute ago
-    },
-    {
-      content: "That sounds perfect! Let's book it.",
-      sender: 'user',
-      timestamp: new Date(new Date().getTime() - 3600000), // 1 hour ago
-    },
-    {
-      content: "Excellent! I've booked your tickets for the Anne Frank House on July 16th at 10:00 AM. You'll receive a confirmation email shortly with your e-tickets. Is there anything else you'd like to plan for your Amsterdam trip?",
-      sender: 'assistant',
-      timestamp: new Date(new Date().getTime() - 3500000), // 58 minutes ago
-    },
-    {
-      content: "Can you suggest some good restaurants near our hotel in the city center?",
-      sender: 'user',
-      timestamp: new Date(new Date().getTime() - 60000), // 1 minute ago
-    },
-    {
-      content: "Absolutely! Here are some great restaurants in Amsterdam's city center that I recommend:\n\n1. Pancake Bakery - Famous for Dutch pancakes with both sweet and savory options. Very kid-friendly!\n\n2. Foodhallen - An indoor food market with various stalls offering everything from Dutch bitterballen to Vietnamese street food.\n\n3. Moeders - A unique Dutch restaurant serving traditional home-cooked meals in a quirky setting.\n\n4. La Pizza Pazza - Great Italian food if you need a break from Dutch cuisine.\n\nWould you like me to make a reservation at any of these for you?",
-      sender: 'assistant',
-      timestamp: new Date(), // now
+      timestamp: new Date(),
     }
   ]);
   
@@ -152,8 +101,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
       } else if (newMessage.toLowerCase().includes('anne frank') || 
                 newMessage.toLowerCase().includes('museum')) {
         
-        const anneOption = sampleActivities.filter(act => act.id === '1')[0];
-        
         setMessages(prev => [
           ...prev, 
           {
@@ -169,7 +116,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
         setMessages(prev => [
           ...prev, 
           {
-            content: "Amsterdam has amazing dining options! With children, I'd recommend:\n\n1. Pancake Bakery - Traditional Dutch pancakes with sweet and savory options.\n\n2. Foodhallen - Indoor food market with lots of stalls to choose from.\n\n3. Pasta e Basta - Italian restaurant where the staff sing opera!\n\nWould you like me to make a reservation at any of these for your stay?",
+            content: "Amsterdam has amazing dining options! With children, I'd recommend:\n\n1. Pancake Bakery - Traditional Dutch pancakes with sweet and savory options.\n\n2. Foodhallen - Indoor food market with lots of stalls to choose from.\n\n3. Moeders - A unique Dutch restaurant serving traditional home-cooked meals in a quirky setting.\n\n4. La Pizza Pazza - Great Italian food if you need a break from Dutch cuisine.\n\nWould you like me to make a reservation at any of these for your stay?",
             sender: 'assistant',
             timestamp: new Date()
           }
