@@ -45,52 +45,55 @@ const SearchForm: React.FC<SearchFormProps> = ({ onBookActivity }) => {
   return (
     <>
       <div className="container mx-auto px-6 lg:px-12 relative">
-        <form onSubmit={handleSubmit} className="flex flex-col md:flex-row items-stretch gap-2">
-          <div className="flex-1 bg-white border-2 border-yellow-400 rounded-md flex items-center relative pl-3 py-2">
+        <form onSubmit={handleSubmit} className="flex flex-col md:flex-row gap-0 md:gap-0 bg-white rounded-md overflow-hidden shadow-lg">
+          <div className="flex-1 border-2 border-booking-yellow md:border-r-0 md:rounded-l-md flex items-center relative pl-10 py-3">
             <Search className="h-5 w-5 text-gray-400 absolute left-3" />
             <Input 
               type="text" 
               placeholder="Where are you going?" 
               value={destination}
               onChange={(e) => setDestination(e.target.value)}
-              className="border-0 pl-6 p-0 focus:outline-none focus:ring-0"
+              className="border-0 p-0 focus:outline-none focus:ring-0 text-lg"
             />
           </div>
           
-          <div className="bg-white border-2 border-yellow-400 rounded-md flex items-center relative py-2 pl-3">
+          <div className="border-2 border-booking-yellow md:border-r-0 md:border-l-0 flex items-center relative pl-10 py-3">
             <Calendar className="h-5 w-5 text-gray-400 absolute left-3" />
             <Input 
               type="text" 
               placeholder="Check-in - Check-out" 
               value={dateRange}
               onChange={(e) => setDateRange(e.target.value)}
-              className="border-0 pl-6 p-0 focus:outline-none focus:ring-0"
+              className="border-0 p-0 focus:outline-none focus:ring-0 text-lg w-48"
             />
           </div>
           
-          <div className="bg-white border-2 border-yellow-400 rounded-md flex items-center relative py-2 pl-3">
+          <div className="border-2 border-booking-yellow md:border-r-0 md:border-l-0 flex items-center relative pl-10 py-3">
             <User className="h-5 w-5 text-gray-400 absolute left-3" />
             <Input 
               type="text" 
               placeholder="2 adults · 0 children" 
               value={guests}
               onChange={(e) => setGuests(e.target.value)}
-              className="border-0 pl-6 p-0 focus:outline-none focus:ring-0"
+              className="border-0 p-0 focus:outline-none focus:ring-0 text-lg w-48"
             />
           </div>
           
-          <Button type="submit" className="bg-[#0071c2] hover:bg-[#00487a] text-white py-2 px-8 text-lg font-medium rounded-md">
+          <Button 
+            type="submit" 
+            className="bg-booking-button hover:bg-booking-buttonHover text-white py-2 px-8 text-lg font-medium rounded-none md:rounded-r-md h-full md:w-auto"
+          >
             Search
           </Button>
         </form>
         
         <div className="flex flex-wrap gap-4 mt-4">
           <div className="flex items-center">
-            <input type="checkbox" id="entire-home" className="mr-2" />
+            <input type="checkbox" id="entire-home" className="mr-2 h-4 w-4" />
             <label htmlFor="entire-home" className="text-white text-sm">I'm looking for an entire home or apartment</label>
           </div>
           <div className="flex items-center">
-            <input type="checkbox" id="flights" className="mr-2" />
+            <input type="checkbox" id="flights" className="mr-2 h-4 w-4" />
             <label htmlFor="flights" className="text-white text-sm">I'm looking for flights</label>
           </div>
         </div>

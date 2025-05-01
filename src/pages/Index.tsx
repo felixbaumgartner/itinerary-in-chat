@@ -43,30 +43,29 @@ const Index = () => {
       <main className="flex-grow bg-[#003580] flex flex-col">
         {/* Hero section */}
         <div 
-          className="w-full bg-cover bg-center pt-10"
+          className="w-full bg-cover bg-center pt-10 pb-28 relative"
           style={{ 
             backgroundImage: "url('https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?q=80&w=2940&auto=format&fit=crop')",
             backgroundPosition: "center",
             backgroundSize: "cover",
-            height: "500px"
           }}
         >
-          <div className="container mx-auto px-6 lg:px-12 pt-8 pb-16">
+          <div className="container mx-auto px-6 lg:px-12 pt-8">
             <div>
               <h1 className="text-5xl font-bold text-white mb-4">Unpack the feeling of home</h1>
               <p className="text-xl text-white/90 mb-8">
                 Choose from houses, chalets, villas and more
               </p>
-              <Button className="bg-[#0071c2] hover:bg-[#00487a] text-white py-2 px-8 text-lg font-medium rounded-md mb-8">
+              <Button className="bg-[#0071c2] hover:bg-[#00487a] text-white py-2 px-8 text-lg font-medium rounded-md mb-20">
                 Book yours
               </Button>
             </div>
           </div>
-          
-          {/* Search form - positioned at the bottom of hero */}
-          <div className="container mx-auto -mt-16 relative z-10">
-            <SearchForm onBookActivity={handleBookActivity} />
-          </div>
+        </div>
+        
+        {/* Search form - positioned over the hero/content boundary */}
+        <div className="container mx-auto -mt-24 relative z-10 mb-6">
+          <SearchForm onBookActivity={handleBookActivity} />
         </div>
         
         {/* Recent searches section */}
