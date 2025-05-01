@@ -1,7 +1,12 @@
+
 import React, { useState, useRef, useEffect } from 'react';
-import { SendIcon, Calendar, Sun } from 'lucide-react';
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { SendIcon, Calendar, Sun, Clock } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { format, addDays } from "date-fns";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import ChatMessage, { MessageProps, ActivityOption } from './ChatMessage';
 import Confetti from './Confetti';
 
@@ -60,8 +65,20 @@ const museumActivities: ActivityOption[] = [
   sampleActivities[0]
 ];
 
+// Available time slots for bookings
+const timeSlots = [
+  '9:00 AM', '10:00 AM', '11:00 AM', '12:00 PM', 
+  '1:00 PM', '2:00 PM', '3:00 PM', '4:00 PM', '5:00 PM'
+];
+
 interface ChatInterfaceProps {
   onBookActivity: (activity: ActivityOption) => void;
+}
+
+interface BookingDetails {
+  activity: ActivityOption;
+  date?: Date;
+  time?: string;
 }
 
 const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
@@ -76,13 +93,15 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
   const [newMessage, setNewMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const [selectedActivity, setSelectedActivity] = useState<ActivityOption | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [currentBooking, setCurrentBooking] = useState<BookingDetails | null>(null);
   
   // Track conversation state to avoid repetitive responses
   const [conversationState, setConversationState] = useState({
     askedAboutMuseums: false,
     askedAboutAvailability: false,
+    waitingForDateSelection: false,
+    waitingForTimeSelection: false,
     askedGenericQuestion: 0, // Counter for generic responses
     lastResponseType: '' // Track last response type
   });
@@ -97,6 +116,119 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNewMessage(e.target.value);
+  };
+
+  const handleDateSelect = (date: Date | undefined) => {
+    if (!date || !currentBooking) return;
+    
+    const selectedDate = date;
+    
+    // Add user's selection as a message
+    const userMessage: MessageProps = {
+      content: `I'd like to visit on ${format(selectedDate, "MMMM d, yyyy")}`,
+      sender: 'user',
+      timestamp: new Date(),
+    };
+    
+    setMessages(prev => [...prev, userMessage]);
+    
+    // Update booking details with selected date
+    setCurrentBooking({
+      ...currentBooking,
+      date: selectedDate
+    });
+    
+    // Show AI is typing
+    setIsTyping(true);
+    
+    // Update conversation state
+    setConversationState(prev => ({
+      ...prev,
+      waitingForDateSelection: false,
+      waitingForTimeSelection: true,
+      lastResponseType: 'time_selection'
+    }));
+    
+    // Simulate AI response with time slot options
+    setTimeout(() => {
+      setIsTyping(false);
+      
+      setMessages(prev => [
+        ...prev,
+        {
+          content: `Great! What time on ${format(selectedDate, "MMMM d, yyyy")} would you prefer to visit ${currentBooking.activity.title}? Here are the available time slots:`,
+          sender: 'assistant',
+          timestamp: new Date(),
+          timeSlots: timeSlots
+        }
+      ]);
+    }, 1000);
+  };
+  
+  const handleTimeSelect = (time: string) => {
+    if (!currentBooking) return;
+    
+    // Add user's selection as a message
+    const userMessage: MessageProps = {
+      content: `I'd like the ${time} timeslot`,
+      sender: 'user',
+      timestamp: new Date(),
+    };
+    
+    setMessages(prev => [...prev, userMessage]);
+    
+    // Update booking with selected time
+    const updatedBooking = {
+      ...currentBooking,
+      time: time
+    };
+    setCurrentBooking(updatedBooking);
+    
+    // Show AI is typing
+    setIsTyping(true);
+    
+    // Update conversation state
+    setConversationState(prev => ({
+      ...prev,
+      waitingForTimeSelection: false,
+      lastResponseType: 'booking_confirmation'
+    }));
+    
+    // Simulate AI response for booking confirmation
+    setTimeout(() => {
+      setIsTyping(false);
+      
+      // Format the date string for display
+      const dateString = updatedBooking.date ? format(updatedBooking.date, "MMMM d, yyyy") : "selected date";
+      
+      // Simulate weather info
+      const weatherTemp = "25°C";
+      const weatherCondition = "sunny";
+      
+      setMessages(prev => [
+        ...prev,
+        {
+          content: `Perfect! I've booked your visit to ${updatedBooking.activity.title} for ${dateString} at ${updatedBooking.time}. You'll receive a confirmation email with your e-tickets shortly. The weather is expected to be ${weatherTemp} and ${weatherCondition}, so don't forget sunscreen! Is there anything else you'd like help with for your Amsterdam trip?`,
+          sender: 'assistant',
+          timestamp: new Date(),
+          icon: (
+            <div className="flex items-center gap-2 mt-2 text-booking-blue">
+              <Sun className="h-5 w-5" />
+              <Calendar className="h-5 w-5" />
+              <Clock className="h-5 w-5" />
+              <span className="font-medium">{dateString} · {updatedBooking.time} · {weatherTemp} {weatherCondition}</span>
+            </div>
+          )
+        }
+      ]);
+      
+      // Book the activity via callback
+      if (onBookActivity && updatedBooking.activity) {
+        onBookActivity(updatedBooking.activity);
+        setShowConfetti(true);
+        setTimeout(() => setShowConfetti(false), 3000);
+      }
+    }, 1500);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -115,6 +247,27 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
     setNewMessage('');
     setIsTyping(true);
     
+    // Special case: If we're waiting for date/time selection, handle through regular chat
+    if (conversationState.waitingForDateSelection || conversationState.waitingForTimeSelection) {
+      // If the conversation is already in a booking flow, continue with text input
+      setIsTyping(true);
+      
+      setTimeout(() => {
+        setIsTyping(false);
+        
+        setMessages(prev => [
+          ...prev,
+          {
+            content: "I'd recommend using the calendar or time selector above to make your selection. It'll help us book the right slot for you. Would you like to continue with that?",
+            sender: 'assistant',
+            timestamp: new Date(),
+          }
+        ]);
+      }, 1000);
+      
+      return;
+    }
+    
     // Simulate response based on message content
     setTimeout(() => {
       setIsTyping(false);
@@ -131,60 +284,27 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
           lowerCaseMessage.includes('booking') ||
           lowerCaseMessage.includes('time')) {
         
-        // Set the selected activity for future reference
-        setSelectedActivity(sampleActivities[0]); // Anne Frank House
+        // Set the selected activity for booking
+        const selectedActivity = sampleActivities[0]; // Anne Frank House
+        setCurrentBooking({ activity: selectedActivity });
+        
         newState.askedAboutAvailability = true;
+        newState.waitingForDateSelection = true;
         newState.lastResponseType = 'availability';
         
+        const tomorrow = addDays(new Date(), 1);
+        const nextWeek = addDays(new Date(), 7);
+        
         setMessages(prev => [
           ...prev, 
           {
-            content: "Good news! I found a free slot for the Anne Frank House on July 17th at 10:00 AM. The weather forecast for that day is excellent (25°C and sunny) ☀️, making it a perfect day to visit. Would you like me to book it for you?",
+            content: "I'd be happy to check availability for the Anne Frank House. When would you like to visit? You can select a date from the calendar below:",
             sender: 'assistant',
             timestamp: new Date(),
-            // Include an icon element to make the message more visually appealing
-            icon: (
-              <div className="flex items-center gap-2 mt-2 text-booking-blue">
-                <Sun className="h-5 w-5" />
-                <Calendar className="h-5 w-5" />
-                <span className="font-medium">July 17th · 10:00 AM · 25°C Sunny</span>
-              </div>
-            )
-          }
-        ]);
-      } 
-      // Check if user is confirming the booking
-      else if ((lowerCaseMessage.includes('yes') || 
-               lowerCaseMessage.includes('book it') ||
-               lowerCaseMessage.includes('sure') ||
-               lowerCaseMessage.includes('okay') ||
-               lowerCaseMessage.includes('perfect') ||
-               lowerCaseMessage.includes('book for me') ||
-               lowerCaseMessage.includes('sounds good')) &&
-               (selectedActivity || conversationState.askedAboutAvailability)) {
-        
-        // Reset conversation state after booking
-        newState.askedAboutAvailability = false;
-        newState.lastResponseType = 'booking_confirmation';
-        
-        // Book the activity
-        if (selectedActivity && onBookActivity) {
-          onBookActivity(selectedActivity);
-          setShowConfetti(true);
-          setTimeout(() => setShowConfetti(false), 3000);
-        } else {
-          // If somehow selectedActivity is null but we're in this flow, use Anne Frank House
-          onBookActivity(sampleActivities[0]);
-          setShowConfetti(true);
-          setTimeout(() => setShowConfetti(false), 3000);
-        }
-        
-        setMessages(prev => [
-          ...prev, 
-          {
-            content: `Perfect! I've booked your visit to the Anne Frank House for July 17th at 10:00 AM. You'll receive a confirmation email with your e-tickets shortly. The weather is expected to be 25°C and sunny, so don't forget sunscreen! Is there anything else you'd like help with for your Amsterdam trip?`,
-            sender: 'assistant',
-            timestamp: new Date()
+            dateSelector: {
+              startDate: tomorrow,
+              endDate: nextWeek
+            }
           }
         ]);
       } 
@@ -309,30 +429,62 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
         <p className="text-xs text-gray-500">Amsterdam · Jul 15-20 · 2 adults</p>
       </div>
       
-      <div className="flex-grow p-3 overflow-y-auto bg-gray-50">
-        {messages.map((message, index) => (
-          <ChatMessage 
-            key={index} 
-            content={message.content} 
-            sender={message.sender} 
-            timestamp={message.timestamp}
-            options={message.options}
-            onBookActivity={onBookActivity}
-            icon={message.icon}
-          />
-        ))}
-        
-        {isTyping && (
-          <ChatMessage 
-            content="" 
-            sender="assistant" 
-            timestamp={new Date()} 
-            typing={true}
-          />
-        )}
-        
-        <div ref={messagesEndRef} />
-      </div>
+      <ScrollArea className="flex-grow">
+        <div className="p-3 bg-gray-50">
+          {messages.map((message, index) => (
+            <ChatMessage 
+              key={index} 
+              content={message.content} 
+              sender={message.sender} 
+              timestamp={message.timestamp}
+              options={message.options}
+              onBookActivity={(activity) => {
+                // Start the booking flow when an activity is selected
+                setCurrentBooking({ activity });
+                setConversationState(prev => ({
+                  ...prev,
+                  waitingForDateSelection: true,
+                  lastResponseType: 'activity_selected'
+                }));
+                
+                // Add a message to prompt date selection
+                const tomorrow = addDays(new Date(), 1);
+                const nextWeek = addDays(new Date(), 7);
+                
+                setMessages(prev => [
+                  ...prev,
+                  {
+                    content: `Great choice! When would you like to visit ${activity.title}? Please select a date:`,
+                    sender: 'assistant',
+                    timestamp: new Date(),
+                    dateSelector: {
+                      startDate: tomorrow,
+                      endDate: nextWeek
+                    }
+                  }
+                ]);
+              }}
+              icon={message.icon}
+              timeSlots={message.timeSlots}
+              onTimeSelect={handleTimeSelect}
+              dateSelector={message.dateSelector}
+              onDateSelect={handleDateSelect}
+              typing={message.typing}
+            />
+          ))}
+          
+          {isTyping && (
+            <ChatMessage 
+              content="" 
+              sender="assistant" 
+              timestamp={new Date()} 
+              typing={true}
+            />
+          )}
+          
+          <div ref={messagesEndRef} />
+        </div>
+      </ScrollArea>
       
       <form onSubmit={handleSubmit} className="p-2 bg-white border-t flex gap-2">
         <Input

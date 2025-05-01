@@ -4,7 +4,9 @@ import { cn } from '@/lib/utils';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from '@/components/ui/button';
-import { Check } from 'lucide-react';
+import { Check, Calendar as CalendarIcon } from 'lucide-react';
+import { Calendar } from "@/components/ui/calendar";
+import { format } from 'date-fns';
 
 export interface ActivityOption {
   id: string;
@@ -16,14 +18,23 @@ export interface ActivityOption {
   reviewCount: number;
 }
 
+interface DateSelector {
+  startDate: Date;
+  endDate: Date;
+}
+
 export interface MessageProps {
   content: string;
   sender: 'user' | 'assistant';
   timestamp: Date;
   options?: ActivityOption[];
   typing?: boolean;
-  onBookActivity?: (activity: ActivityOption) => void;
   icon?: React.ReactNode;
+  onBookActivity?: (activity: ActivityOption) => void;
+  dateSelector?: DateSelector;
+  onDateSelect?: (date: Date | undefined) => void;
+  timeSlots?: string[];
+  onTimeSelect?: (time: string) => void;
 }
 
 const ChatMessage: React.FC<MessageProps> = ({
@@ -33,7 +44,11 @@ const ChatMessage: React.FC<MessageProps> = ({
   options,
   typing = false,
   onBookActivity,
-  icon
+  icon,
+  dateSelector,
+  onDateSelect,
+  timeSlots,
+  onTimeSelect
 }) => {
   const isUser = sender === 'user';
   const formattedTime = timestamp.toLocaleTimeString([], { 
@@ -47,6 +62,12 @@ const ChatMessage: React.FC<MessageProps> = ({
     }
   };
 
+  const handleTimeSelect = (time: string) => {
+    if (onTimeSelect) {
+      onTimeSelect(time);
+    }
+  };
+
   return (
     <div className={cn(
       "flex w-full mb-4 animate-fade-in",
@@ -54,7 +75,7 @@ const ChatMessage: React.FC<MessageProps> = ({
     )}>
       <div className={cn(
         "max-w-[80%]",
-        !isUser && options && "w-full"
+        !isUser && (options || dateSelector || timeSlots) && "w-full"
       )}>
         <div className={cn(
           "px-4 py-3 rounded-2xl",
@@ -74,6 +95,45 @@ const ChatMessage: React.FC<MessageProps> = ({
           )}
         </div>
 
+        {/* Date Selector */}
+        {dateSelector && onDateSelect && (
+          <div className="mt-3 bg-white p-4 rounded-md shadow-sm border border-gray-100">
+            <div className="flex items-center mb-2">
+              <CalendarIcon className="mr-2 h-5 w-5 text-booking-blue" />
+              <h4 className="font-medium text-booking-blue">Select a date for your visit</h4>
+            </div>
+            <Calendar
+              mode="single"
+              onSelect={onDateSelect}
+              disabled={(date) => {
+                // Disable dates before today or after the end date
+                return date < new Date() || (dateSelector.endDate ? date > dateSelector.endDate : false);
+              }}
+              initialFocus
+            />
+          </div>
+        )}
+
+        {/* Time Slots */}
+        {timeSlots && timeSlots.length > 0 && (
+          <div className="mt-3 bg-white p-4 rounded-md shadow-sm border border-gray-100">
+            <h4 className="font-medium text-booking-blue mb-3">Available Time Slots</h4>
+            <div className="grid grid-cols-3 gap-2">
+              {timeSlots.map((time, index) => (
+                <Button
+                  key={index}
+                  variant="outline"
+                  className="text-sm text-booking-blue hover:bg-booking-lightBlue hover:text-booking-navy"
+                  onClick={() => handleTimeSelect(time)}
+                >
+                  {time}
+                </Button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Activity Options */}
         {options && options.length > 0 && (
           <div className="mt-3 space-y-3">
             {options.map((option) => (
