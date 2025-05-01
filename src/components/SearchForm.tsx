@@ -134,29 +134,11 @@ const SearchForm: React.FC<SearchFormProps> = ({ onBookActivity }) => {
         </DialogContent>
       </Dialog>
 
-      {/* Concierge Chat Dialog - shown after booking */}
+      {/* Trip Assistant Dialog - smaller and positioned in lower right */}
       <Dialog open={showConcierge} onOpenChange={setShowConcierge}>
-        <DialogContent className="sm:max-w-[80vw] h-[80vh] p-0 overflow-hidden">
-          <div className="flex h-full">
-            <div className="w-1/3 h-full overflow-auto border-r border-gray-200">
-              <div className="p-4 bg-[#003580] text-white">
-                <h2 className="text-xl font-bold">Your Trip</h2>
-                <p className="text-sm opacity-80">{destination}</p>
-              </div>
-              <div className="p-4">
-                {bookedProperty && (
-                  <div className="bg-white rounded-lg shadow-sm p-3 mb-4 border border-gray-200">
-                    <div className="font-medium mb-2">{bookedProperty.name}</div>
-                    <div className="text-sm text-gray-500">{dateRange}</div>
-                    <div className="text-sm text-gray-500">{guests}</div>
-                  </div>
-                )}
-                <p className="text-sm text-gray-500 font-medium mb-2">
-                  Need help planning the rest of your {destination} trip? Chat with our AI Concierge!
-                </p>
-              </div>
-            </div>
-            <div className="w-2/3 h-full">
+        <DialogContent className="sm:max-w-[400px] w-[95vw] h-[500px] max-h-[80vh] p-0 overflow-hidden fixed bottom-6 right-6 sm:bottom-8 sm:right-8 shadow-2xl rounded-lg">
+          <div className="flex flex-col h-full">
+            <div className="w-full h-full overflow-hidden">
               <ChatInterface onBookActivity={onBookActivity} />
             </div>
           </div>
