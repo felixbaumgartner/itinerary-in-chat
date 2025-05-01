@@ -3,6 +3,7 @@ import { SendIcon, Calendar, Sun } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import ChatMessage, { MessageProps, ActivityOption } from './ChatMessage';
+import Confetti from './Confetti';
 
 // Sample activity options
 const sampleActivities: ActivityOption[] = [
@@ -35,6 +36,30 @@ const sampleActivities: ActivityOption[] = [
   }
 ];
 
+// Museum-specific activities
+const museumActivities: ActivityOption[] = [
+  {
+    id: '4',
+    title: 'Rijksmuseum',
+    description: "The Dutch national museum dedicated to arts and history in Amsterdam with masterpieces from Rembrandt and Vermeer.",
+    price: '€20 per person',
+    image: 'https://images.unsplash.com/photo-1583029901628-8039987f8fe0?q=80&w=2874&auto=format&fit=crop',
+    rating: 9.5,
+    reviewCount: 2100
+  },
+  {
+    id: '5',
+    title: 'Van Gogh Museum',
+    description: 'Home to the largest collection of artworks by Vincent van Gogh in the world, including over 200 paintings and 500 drawings.',
+    price: '€19 per person',
+    image: 'https://images.unsplash.com/photo-1590559899731-a382839e5549?q=80&w=2874&auto=format&fit=crop',
+    rating: 9.3,
+    reviewCount: 1876
+  },
+  // Keep Anne Frank House as an option for museums too
+  sampleActivities[0]
+];
+
 interface ChatInterfaceProps {
   onBookActivity: (activity: ActivityOption) => void;
 }
@@ -52,6 +77,15 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [selectedActivity, setSelectedActivity] = useState<ActivityOption | null>(null);
+  const [showConfetti, setShowConfetti] = useState(false);
+  
+  // Track conversation state to avoid repetitive responses
+  const [conversationState, setConversationState] = useState({
+    askedAboutMuseums: false,
+    askedAboutAvailability: false,
+    askedGenericQuestion: 0, // Counter for generic responses
+    lastResponseType: '' // Track last response type
+  });
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -86,16 +120,21 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
       setIsTyping(false);
       
       const lowerCaseMessage = newMessage.toLowerCase();
+      const newState = {...conversationState};
       
-      // Check if user is asking about availability
+      // Check if user is asking about availability or specific slot
       if (lowerCaseMessage.includes('availability') || 
           lowerCaseMessage.includes('available') || 
           lowerCaseMessage.includes('check') || 
           lowerCaseMessage.includes('anne frank') ||
-          lowerCaseMessage.includes('slot')) {
+          lowerCaseMessage.includes('slot') ||
+          lowerCaseMessage.includes('booking') ||
+          lowerCaseMessage.includes('time')) {
         
         // Set the selected activity for future reference
         setSelectedActivity(sampleActivities[0]); // Anne Frank House
+        newState.askedAboutAvailability = true;
+        newState.lastResponseType = 'availability';
         
         setMessages(prev => [
           ...prev, 
@@ -118,12 +157,26 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
       else if ((lowerCaseMessage.includes('yes') || 
                lowerCaseMessage.includes('book it') ||
                lowerCaseMessage.includes('sure') ||
-               lowerCaseMessage.includes('okay')) &&
-               selectedActivity) {
+               lowerCaseMessage.includes('okay') ||
+               lowerCaseMessage.includes('perfect') ||
+               lowerCaseMessage.includes('book for me') ||
+               lowerCaseMessage.includes('sounds good')) &&
+               (selectedActivity || conversationState.askedAboutAvailability)) {
+        
+        // Reset conversation state after booking
+        newState.askedAboutAvailability = false;
+        newState.lastResponseType = 'booking_confirmation';
         
         // Book the activity
         if (selectedActivity && onBookActivity) {
           onBookActivity(selectedActivity);
+          setShowConfetti(true);
+          setTimeout(() => setShowConfetti(false), 3000);
+        } else {
+          // If somehow selectedActivity is null but we're in this flow, use Anne Frank House
+          onBookActivity(sampleActivities[0]);
+          setShowConfetti(true);
+          setTimeout(() => setShowConfetti(false), 3000);
         }
         
         setMessages(prev => [
@@ -134,33 +187,82 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
             timestamp: new Date()
           }
         ]);
-      } else if (lowerCaseMessage.includes('activities') || 
-          lowerCaseMessage.includes('things to do') ||
-          lowerCaseMessage.includes('family')) {
+      } 
+      // Check for museum-related queries
+      else if (lowerCaseMessage.includes('museum') || 
+              lowerCaseMessage.includes('museums') ||
+              lowerCaseMessage.includes('art') ||
+              lowerCaseMessage.includes('gallery') ||
+              lowerCaseMessage.includes('exhibition') ||
+              lowerCaseMessage.includes('culture') ||
+              lowerCaseMessage.includes('visit') && lowerCaseMessage.includes('museum') ||
+              lowerCaseMessage.includes('trip to')) {
+        
+        newState.askedAboutMuseums = true;
+        newState.lastResponseType = 'museums';
         
         setMessages(prev => [
           ...prev, 
           {
-            content: "I'd be happy to help you find family-friendly activities in Amsterdam! Here are some great options that are perfect for families with children:",
+            content: "Amsterdam is home to world-class museums! Here are some must-visit museums that I would recommend:",
+            sender: 'assistant',
+            timestamp: new Date(),
+            options: museumActivities
+          }
+        ]);
+      }
+      // Check for activity and family-friendly requests
+      else if (lowerCaseMessage.includes('activities') || 
+              lowerCaseMessage.includes('things to do') ||
+              lowerCaseMessage.includes('family') ||
+              lowerCaseMessage.includes('fun') ||
+              lowerCaseMessage.includes('kids') ||
+              lowerCaseMessage.includes('sightseeing') ||
+              lowerCaseMessage.includes('attractions')) {
+        
+        newState.lastResponseType = 'activities';
+        
+        setMessages(prev => [
+          ...prev, 
+          {
+            content: "I'd be happy to help you find family-friendly activities in Amsterdam! Here are some great options that are perfect for visitors of all ages:",
             sender: 'assistant',
             timestamp: new Date(),
             options: sampleActivities
           }
         ]);
-      } else if (lowerCaseMessage.includes('restaurant') || 
-                lowerCaseMessage.includes('eat') ||
-                lowerCaseMessage.includes('food')) {
+      } 
+      // Restaurant and food queries
+      else if (lowerCaseMessage.includes('restaurant') || 
+              lowerCaseMessage.includes('eat') ||
+              lowerCaseMessage.includes('food') ||
+              lowerCaseMessage.includes('dining') ||
+              lowerCaseMessage.includes('meal') ||
+              lowerCaseMessage.includes('dinner') ||
+              lowerCaseMessage.includes('lunch')) {
+        
+        newState.lastResponseType = 'restaurants';
         
         setMessages(prev => [
           ...prev, 
           {
-            content: "Amsterdam has amazing dining options! With children, I'd recommend:\n\n1. Pancake Bakery - Traditional Dutch pancakes with sweet and savory options.\n\n2. Foodhallen - Indoor food market with lots of stalls to choose from.\n\n3. Moeders - A unique Dutch restaurant serving traditional home-cooked meals in a quirky setting.\n\n4. La Pizza Pazza - Great Italian food if you need a break from Dutch cuisine.\n\nWould you like me to make a reservation at any of these for your stay?",
+            content: "Amsterdam has amazing dining options! Here are some recommendations:\n\n1. Pancake Bakery - Traditional Dutch pancakes with sweet and savory options.\n\n2. Foodhallen - Indoor food market with lots of stalls to choose from.\n\n3. Moeders - A unique Dutch restaurant serving traditional home-cooked meals in a quirky setting.\n\n4. La Pizza Pazza - Great Italian food if you need a break from Dutch cuisine.\n\nWould you like me to make a reservation at any of these for your stay?",
             sender: 'assistant',
             timestamp: new Date()
           }
         ]);
-      } else if (lowerCaseMessage.includes('transport') || 
-                lowerCaseMessage.includes('getting around')) {
+      } 
+      // Transport and getting around
+      else if (lowerCaseMessage.includes('transport') || 
+              lowerCaseMessage.includes('getting around') ||
+              lowerCaseMessage.includes('travel') ||
+              lowerCaseMessage.includes('bus') ||
+              lowerCaseMessage.includes('tram') ||
+              lowerCaseMessage.includes('bike') ||
+              lowerCaseMessage.includes('rental') ||
+              lowerCaseMessage.includes('taxi')) {
+        
+        newState.lastResponseType = 'transport';
         
         setMessages(prev => [
           ...prev, 
@@ -170,31 +272,33 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
             timestamp: new Date()
           }
         ]);
-      } else if (lowerCaseMessage.includes('book') || 
-                lowerCaseMessage.includes('reserve')) {
-        
-        // Show booking confirmation
-        const activityToBook = sampleActivities[0]; // Use Anne Frank House as default
-        onBookActivity(activityToBook);
-        
-        setMessages(prev => [
-          ...prev, 
-          {
-            content: `Great! I've booked your visit to ${activityToBook.title} for July 16th at 10:00 AM. You'll receive a confirmation email with your e-tickets shortly. Is there anything else you'd like help with for your Amsterdam trip?`,
-            sender: 'assistant',
-            timestamp: new Date()
-          }
-        ]);
       } else {
+        // Generic response - vary it based on how many generic responses have been given
+        newState.askedGenericQuestion++;
+        
+        // Different variations of generic responses to avoid loops
+        let genericResponses = [
+          "I'm here to help you plan your trip to Amsterdam! I can recommend activities, restaurants, or transportation options. What specifically are you looking for?",
+          "I'd love to assist with your Amsterdam trip! I can suggest museums, family activities, or dining options. What aspect of your trip would you like assistance with today?",
+          "For your Amsterdam visit, I can help with bookings, recommendations, and local tips. Which part of your trip would you like assistance with today?",
+          "How can I make your Amsterdam experience amazing? I can help with attractions, dining, or transportation. What would you like to know about?"
+        ];
+        
+        // Use the counter to cycle through different generic responses
+        const responseIndex = (newState.askedGenericQuestion - 1) % genericResponses.length;
+        
         setMessages(prev => [
           ...prev, 
           {
-            content: "I'm here to help you plan your trip to Amsterdam! I can recommend activities, restaurants, or transportation options. What specifically are you looking for?",
+            content: genericResponses[responseIndex],
             sender: 'assistant',
             timestamp: new Date()
           }
         ]);
       }
+      
+      // Update the conversation state
+      setConversationState(newState);
     }, 1500);
   };
 
@@ -242,6 +346,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
           <SendIcon className="h-4 w-4" />
         </Button>
       </form>
+      
+      {/* Add confetti component */}
+      <Confetti active={showConfetti} />
     </div>
   );
 };
