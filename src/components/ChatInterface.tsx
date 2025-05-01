@@ -267,7 +267,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
         userMessage: "Hi! We arrive the afternoon of July 15. Any must-do activities for first-timers?",
         assistantResponse: {
           content: "Absolutely! Here are three popular options for a 5-day visit:\n\nEvening Canal Cruise – 90-minute boat tour with cheese & wine (€42 pp).\n\nRijksmuseum Fast-Track Ticket – Skip the line, includes audio guide (€25 pp).\n\nCountryside Bike Tour – Half-day ride through windmills & villages (€55 pp).\nWould you like details—or shall I hold seats for one of them?",
-          sender: 'assistant',
+          sender: 'assistant' as 'assistant',
           timestamp: new Date(),
         }
       },
@@ -276,7 +276,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
         userMessage: "The canal cruise sounds perfect for our first night. Can you book that?",
         assistantResponse: {
           content: "Sure thing! Quick question: do you prefer the 7 pm sunset sailing or the 9 pm city-lights sailing?",
-          sender: 'assistant',
+          sender: 'assistant' as 'assistant',
           timestamp: new Date(),
         }
       },
@@ -285,7 +285,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
         userMessage: "Let's do 7 pm, two adults.",
         assistantResponse: {
           content: "Got it ✔️\nBooking summary: Evening Canal Cruise, July 15 @ 19:00, 2 adults – €84 total.\nShall I confirm and add it to your trip?",
-          sender: 'assistant',
+          sender: 'assistant' as 'assistant',
           timestamp: new Date(),
           icon: (
             <div className="flex items-center gap-2 mt-2 text-booking-blue">
@@ -301,7 +301,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
         userMessage: "Yes, please confirm.",
         assistantResponse: {
           content: "🎉 All set! Confirmation # CAN-71345. You'll board at Prins Hendrikkade 25—5 min walk from your hotel.\nAnything else I can arrange? Many travelers book airport transfers in advance to avoid taxi queues.",
-          sender: 'assistant',
+          sender: 'assistant' as 'assistant',
           timestamp: new Date(),
         }
       },
@@ -310,7 +310,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
         userMessage: "Good idea. What's the cost for a private taxi from Schiphol to our hotel on the 15th at 14:30?",
         assistantResponse: {
           content: "A private sedan for two guests is €48, including meet-&-greet at arrivals and luggage assistance. Book it?",
-          sender: 'assistant',
+          sender: 'assistant' as 'assistant',
           timestamp: new Date(),
         }
       },
@@ -319,7 +319,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
         userMessage: "Yes, go ahead.",
         assistantResponse: {
           content: "✅ Done! Transfer booked—confirmation # TX-55812. Driver contact details will appear here 24 hrs before arrival.\nYou now have:\n• Airport Private Taxi – Jul 15 14:30 – €48\n• Evening Canal Cruise – Jul 15 19:00 – €84\nTotal add-ons: €132\n\nNeed restaurant tips, museum tickets, or anything else?",
-          sender: 'assistant',
+          sender: 'assistant' as 'assistant',
           timestamp: new Date(),
           icon: (
             <div className="flex items-center gap-2 mt-2 text-booking-blue">
@@ -335,7 +335,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
         userMessage: "That covers it for now—thanks a lot!",
         assistantResponse: {
           content: "My pleasure. Have a fantastic time in Amsterdam! Chat with me anytime if you need more help. 🌷",
-          sender: 'assistant',
+          sender: 'assistant' as 'assistant',
           timestamp: new Date(),
         }
       },
@@ -462,7 +462,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
           ...prev, 
           {
             content: "I'd be happy to check availability for the Anne Frank House. When would you like to visit? You can select a date from the calendar below:",
-            sender: 'assistant',
+            sender: 'assistant' as 'assistant',
             timestamp: new Date(),
             dateSelector: {
               startDate: tomorrow,
@@ -488,7 +488,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
           ...prev, 
           {
             content: "Amsterdam is home to world-class museums! Here are some must-visit museums that I would recommend:",
-            sender: 'assistant',
+            sender: 'assistant' as 'assistant',
             timestamp: new Date(),
             options: museumActivities
           }
@@ -574,7 +574,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
           ...prev, 
           {
             content: genericResponses[responseIndex],
-            sender: 'assistant',
+            sender: 'assistant' as 'assistant',
             timestamp: new Date()
           }
         ]);
