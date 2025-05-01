@@ -1,12 +1,9 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { SendIcon, Calendar, Ticket } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { format, addDays } from "date-fns";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import ChatMessage, { MessageProps, ActivityOption } from './ChatMessage';
 import Confetti from './Confetti';
 
@@ -108,23 +105,19 @@ interface BookingDetails {
 }
 
 const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
-  // Predefined script messages
-  const scriptedMessages: MessageProps[] = [
+  const [messages, setMessages] = useState<MessageProps[]>([
     {
       content: "Hello! I'm your personal Trip Assistant for your upcoming stay in Amsterdam. How can I help you plan your visit?",
       sender: 'assistant',
       timestamp: new Date(),
     }
-  ];
+  ]);
   
-  const [messages, setMessages] = useState<MessageProps[]>(scriptedMessages);
   const [newMessage, setNewMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [showConfetti, setShowConfetti] = useState(false);
   const [currentBooking, setCurrentBooking] = useState<BookingDetails | null>(null);
-  const [scriptStep, setScriptStep] = useState(0);
-  const [waitingForFinalConfirmation, setWaitingForFinalConfirmation] = useState(false);
   const [pendingBooking, setPendingBooking] = useState<ActivityOption | null>(null);
   
   // Track conversation state to avoid repetitive responses
@@ -134,8 +127,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
     waitingForDateSelection: false,
     waitingForTimeSelection: false,
     askedGenericQuestion: 0,
-    lastResponseType: '',
-    followingScript: false
+    lastResponseType: ''
   });
 
   const scrollToBottom = () => {
@@ -166,9 +158,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
     
     setMessages(prev => [...prev, userMessage]);
     setIsTyping(true);
-    
-    // Update waiting state
-    setWaitingForFinalConfirmation(false);
     
     setTimeout(() => {
       setIsTyping(false);
@@ -209,11 +198,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
       
       // Clear pending booking
       setPendingBooking(null);
-      
-      // Move to next step if in script
-      if (scriptStep === 4 || scriptStep === 6) {
-        setScriptStep(scriptStep + 1);
-      }
     }, 1000);
   };
 
@@ -309,156 +293,16 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
           confirmationActions: true
         }
       ]);
-    }, 1500);
-  };
-
-  // Function to continue the scripted conversation
-  const continueScriptedConversation = (userInput: string) => {
-    // Scripted conversation flow
-    const scriptedFlow = [
-      // Step 1: User asks about first-time activities
-      {
-        userMessage: "Hi! We arrive the afternoon of July 15. Any must-do activities for first-timers?",
-        assistantResponse: {
-          content: "Absolutely! Here are three popular options for a 5-day visit:\n\nEvening Canal Cruise – 90-minute boat tour with cheese & wine (€42 pp).\n\nRijksmuseum Fast-Track Ticket – Skip the line, includes audio guide (€25 pp).\n\nCountryside Bike Tour – Half-day ride through windmills & villages (€55 pp).\nWould you like details—or shall I hold seats for one of them?",
-          sender: 'assistant' as 'assistant',
-          timestamp: new Date(),
-        }
-      },
-      // Step 2: User wants to book canal cruise
-      {
-        userMessage: "The canal cruise sounds perfect for our first night. Can you book that?",
-        assistantResponse: {
-          content: "Sure thing! Quick question: do you prefer the 7 pm sunset sailing or the 9 pm city-lights sailing?",
-          sender: 'assistant' as 'assistant',
-          timestamp: new Date(),
-        }
-      },
-      // Step 3: User chooses time
-      {
-        userMessage: "Let's do 7 pm, two adults.",
-        assistantResponse: {
-          content: "Got it! Booking summary: Evening Canal Cruise, July 15 @ 19:00, 2 adults – €84 total.\nShall I confirm and add it to your trip?",
-          sender: 'assistant' as 'assistant',
-          timestamp: new Date(),
-          icon: (
-            <div className="flex items-center gap-2 mt-2 text-booking-blue">
-              <Ticket className="h-5 w-5" />
-              <Calendar className="h-5 w-5" />
-              <span className="font-medium">Jul 15, 2025 · 19:00 · Evening Canal Cruise</span>
-            </div>
-          )
-        }
-      },
-      // Step 4: User says yes, ask for confirmation
-      {
-        userMessage: "Yes, please confirm.",
-        assistantResponse: {
-          content: "Before I finalize this booking, please confirm: \n\nEvening Canal Cruise\nJuly 15 @ 19:00\n2 adults\nTotal: €84\n\nWould you like to confirm this booking?",
-          sender: 'assistant' as 'assistant',
-          timestamp: new Date(),
-          confirmationActions: true
-        }
-      },
-      // Step 5: System confirms booking after user confirms
-      {
-        userMessage: "Yes, I confirm the booking.",
-        assistantResponse: {
-          content: "🎉 All set! Confirmation # CAN-71345. You'll board at Prins Hendrikkade 25—5 min walk from your hotel.\nAnything else I can arrange? Many travelers book airport transfers in advance to avoid taxi queues.",
-          sender: 'assistant' as 'assistant',
-          timestamp: new Date(),
-        }
-      },
-      // Step 6: User asks about taxi
-      {
-        userMessage: "Good idea. What's the cost for a private taxi from Schiphol to our hotel on the 15th at 14:30?",
-        assistantResponse: {
-          content: "A private sedan for two guests is €48, including meet-&-greet at arrivals and luggage assistance. Would you like to book this transfer?",
-          sender: 'assistant' as 'assistant',
-          timestamp: new Date(),
-          confirmationActions: true
-        }
-      },
-      // Step 7: System confirms taxi after user confirms
-      {
-        userMessage: "Yes, I confirm the booking.",
-        assistantResponse: {
-          content: "✅ Done! Transfer booked—confirmation # TX-55812. Driver contact details will appear here 24 hrs before arrival.\nYou now have:\n• Airport Private Taxi – Jul 15 14:30 – €48\n• Evening Canal Cruise – Jul 15 19:00 – €84\nTotal add-ons: €132\n\nNeed restaurant tips, museum tickets, or anything else?",
-          sender: 'assistant' as 'assistant',
-          timestamp: new Date(),
-          icon: (
-            <div className="flex items-center gap-2 mt-2 text-booking-blue">
-              <Ticket className="h-5 w-5" />
-              <Calendar className="h-5 w-5" />
-              <span className="font-medium">Jul 15, 2025 · 14:30 · Airport Transfer</span>
-            </div>
-          )
-        }
-      },
-      // Step 8: User is done
-      {
-        userMessage: "That covers it for now—thanks a lot!",
-        assistantResponse: {
-          content: "My pleasure. Have a fantastic time in Amsterdam! Chat with me anytime if you need more help. 🌷",
-          sender: 'assistant' as 'assistant',
-          timestamp: new Date(),
-        }
-      },
-    ];
-
-    // If we're following the script
-    if (scriptStep < scriptedFlow.length) {
-      const currentStep = scriptedFlow[scriptStep];
       
-      // Add the scripted user message if this is the first message
-      if (scriptStep === 0 || userInput.toLowerCase().includes(currentStep.userMessage.toLowerCase().substring(0, 10))) {
-        // Add user message from script
-        const userMessage: MessageProps = {
-          content: currentStep.userMessage,
-          sender: 'user',
-          timestamp: new Date(),
-        };
-        
-        setMessages(prev => [...prev, userMessage]);
-        setIsTyping(true);
-        
-        // Add assistant response after a delay
-        setTimeout(() => {
-          setIsTyping(false);
-          setMessages(prev => [...prev, currentStep.assistantResponse]);
-          
-          // If we're at step 3 or 6, we need to wait for confirmation instead of auto-proceeding
-          if (scriptStep === 3) {
-            setPendingBooking(canalCruiseOptions[0]);
-            setWaitingForFinalConfirmation(true);
-          } else if (scriptStep === 6) {
-            setPendingBooking(transportOptions[0]);
-            setWaitingForFinalConfirmation(true);
-          } else {
-            // Move to the next step for other steps
-            setScriptStep(scriptStep + 1);
-          }
-        }, 1000);
-        
-        return true;
-      }
-    }
-    
-    return false;
+      // Set the pending booking for confirmation
+      setPendingBooking(updatedBooking.activity);
+    }, 1500);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (newMessage.trim() === '') return;
-    
-    // Try to continue the scripted conversation
-    const followingScript = continueScriptedConversation(newMessage);
-    
-    if (followingScript) {
-      setNewMessage('');
-      return;
-    }
     
     // Add user message
     const userMessage: MessageProps = {
@@ -471,67 +315,14 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
     setNewMessage('');
     setIsTyping(true);
     
-    // Special case: If we're waiting for date/time selection, handle through regular chat
-    if (conversationState.waitingForDateSelection || conversationState.waitingForTimeSelection) {
-      // If the conversation is already in a booking flow, continue with text input
-      setIsTyping(true);
-      
-      setTimeout(() => {
-        setIsTyping(false);
-        
-        setMessages(prev => [
-          ...prev,
-          {
-            content: "I'd recommend using the calendar or time selector above to make your selection. It'll help us book the right slot for you. Would you like to continue with that?",
-            sender: 'assistant',
-            timestamp: new Date(),
-          }
-        ]);
-      }, 1000);
-      
-      return;
-    }
-    
-    // Handle waiting for final confirmation state
-    if (waitingForFinalConfirmation) {
-      const lowerCaseMessage = newMessage.toLowerCase();
-      
-      // Check if the user is confirming or cancelling
-      if (lowerCaseMessage.includes('yes') || 
-          lowerCaseMessage.includes('confirm') || 
-          lowerCaseMessage.includes('ok') || 
-          lowerCaseMessage.includes('sure')) {
-        handleConfirmation(true);
-      } else if (lowerCaseMessage.includes('no') || 
-                lowerCaseMessage.includes('cancel') || 
-                lowerCaseMessage.includes('don\'t')) {
-        handleConfirmation(false);
-      } else {
-        // Unclear response
-        setIsTyping(false);
-        
-        setMessages(prev => [
-          ...prev,
-          {
-            content: "I didn't quite catch that. Would you like to confirm this booking? Please respond with yes or no.",
-            sender: 'assistant',
-            timestamp: new Date(),
-            confirmationActions: true
-          }
-        ]);
-      }
-      
-      return;
-    }
-    
-    // Simulate response based on message content
+    // Process user message and generate response
     setTimeout(() => {
       setIsTyping(false);
       
       const lowerCaseMessage = newMessage.toLowerCase();
       const newState = {...conversationState};
       
-      // Check if user is asking about availability or specific slot
+      // Check for availability or specific slot requests
       if (lowerCaseMessage.includes('availability') || 
           lowerCaseMessage.includes('available') || 
           lowerCaseMessage.includes('check') || 
@@ -608,6 +399,42 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
           }
         ]);
       } 
+      // Canal cruise queries
+      else if (lowerCaseMessage.includes('canal') || 
+              lowerCaseMessage.includes('cruise') ||
+              lowerCaseMessage.includes('boat') ||
+              lowerCaseMessage.includes('tour')) {
+        
+        newState.lastResponseType = 'canal_cruise';
+        
+        setMessages(prev => [
+          ...prev, 
+          {
+            content: "A canal cruise is one of the best ways to see Amsterdam! Here's a popular evening cruise option:",
+            sender: 'assistant',
+            timestamp: new Date(),
+            options: canalCruiseOptions
+          }
+        ]);
+      }
+      // Transport queries
+      else if (lowerCaseMessage.includes('airport') || 
+              lowerCaseMessage.includes('transfer') ||
+              lowerCaseMessage.includes('taxi') ||
+              lowerCaseMessage.includes('transportation')) {
+        
+        newState.lastResponseType = 'transportation';
+        
+        setMessages(prev => [
+          ...prev, 
+          {
+            content: "I can help arrange transportation for you. Here's a private transfer option from Schiphol Airport:",
+            sender: 'assistant',
+            timestamp: new Date(),
+            options: transportOptions
+          }
+        ]);
+      }
       // Restaurant and food queries
       else if (lowerCaseMessage.includes('restaurant') || 
               lowerCaseMessage.includes('eat') ||
@@ -635,8 +462,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
               lowerCaseMessage.includes('bus') ||
               lowerCaseMessage.includes('tram') ||
               lowerCaseMessage.includes('bike') ||
-              lowerCaseMessage.includes('rental') ||
-              lowerCaseMessage.includes('taxi')) {
+              lowerCaseMessage.includes('rental')) {
         
         newState.lastResponseType = 'transport';
         
@@ -648,14 +474,15 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
             timestamp: new Date()
           }
         ]);
-      } else {
-        // Generic response - vary it based on how many generic responses have been given
+      } 
+      // Generic response - vary it based on how many generic responses have been given
+      else {
         newState.askedGenericQuestion++;
         
-        // Different variations of generic responses to avoid loops
+        // Different variations of generic responses to avoid repetition
         let genericResponses = [
           "I'm here to help you plan your trip to Amsterdam! I can recommend activities, restaurants, or transportation options. What specifically are you looking for?",
-          "I'd love to assist with your Amsterdam trip! I can suggest museums, family activities, or dining options. What aspect of your trip would you like assistance with today?",
+          "I'd love to assist with your Amsterdam trip! I can suggest museums, family activities, or dining options. What aspect of your trip would you like assistance with?",
           "For your Amsterdam visit, I can help with bookings, recommendations, and local tips. Which part of your trip would you like assistance with today?",
           "How can I make your Amsterdam experience amazing? I can help with attractions, dining, or transportation. What would you like to know about?"
         ];
