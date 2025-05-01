@@ -1,7 +1,6 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { SendIcon, Calendar, Sun, Clock } from 'lucide-react';
+import { SendIcon, Calendar, Taxi, Ticket } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { format, addDays } from "date-fns";
@@ -71,6 +70,32 @@ const timeSlots = [
   '1:00 PM', '2:00 PM', '3:00 PM', '4:00 PM', '5:00 PM'
 ];
 
+// Canal cruise options
+const canalCruiseOptions = [
+  {
+    id: 'canal1',
+    title: 'Evening Canal Cruise',
+    description: '90-minute boat tour with cheese & wine through Amsterdam\'s iconic canals.',
+    price: '€42 per person',
+    image: 'https://images.unsplash.com/photo-1605101100278-5d1deb2b6498?q=80&w=2940&auto=format&fit=crop',
+    rating: 9.2,
+    reviewCount: 1875
+  }
+];
+
+// Transportation options
+const transportOptions = [
+  {
+    id: 'transfer1',
+    title: 'Private Airport Transfer',
+    description: 'Door-to-door service from Schiphol Airport to your hotel with meet & greet.',
+    price: '€48 total',
+    image: 'https://images.unsplash.com/photo-1553194642-8dcb1c431cb8?q=80&w=2874&auto=format&fit=crop',
+    rating: 9.0,
+    reviewCount: 934
+  }
+];
+
 interface ChatInterfaceProps {
   onBookActivity: (activity: ActivityOption) => void;
 }
@@ -82,19 +107,22 @@ interface BookingDetails {
 }
 
 const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
-  const [messages, setMessages] = useState<MessageProps[]>([
+  // Predefined script messages
+  const scriptedMessages: MessageProps[] = [
     {
       content: "Hello! I'm your personal Trip Assistant for your upcoming stay in Amsterdam. How can I help you plan your visit?",
       sender: 'assistant',
       timestamp: new Date(),
     }
-  ]);
+  ];
   
+  const [messages, setMessages] = useState<MessageProps[]>(scriptedMessages);
   const [newMessage, setNewMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [showConfetti, setShowConfetti] = useState(false);
   const [currentBooking, setCurrentBooking] = useState<BookingDetails | null>(null);
+  const [scriptStep, setScriptStep] = useState(0);
   
   // Track conversation state to avoid repetitive responses
   const [conversationState, setConversationState] = useState({
@@ -102,8 +130,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
     askedAboutAvailability: false,
     waitingForDateSelection: false,
     waitingForTimeSelection: false,
-    askedGenericQuestion: 0, // Counter for generic responses
-    lastResponseType: '' // Track last response type
+    askedGenericQuestion: 0,
+    lastResponseType: '',
+    followingScript: false
   });
 
   const scrollToBottom = () => {
@@ -216,7 +245,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
               <Sun className="h-5 w-5" />
               <Calendar className="h-5 w-5" />
               <Clock className="h-5 w-5" />
-              <span className="font-medium">{dateString} · {updatedBooking.time} · {weatherTemp} {weatherCondition}</span>
+              <span className="font-medium">{dateString} · ${updatedBooking.time} · ${weatherTemp} ${weatherCondition}</span>
             </div>
           )
         }
@@ -231,10 +260,146 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
     }, 1500);
   };
 
+  // Function to continue the scripted conversation
+  const continueScriptedConversation = (userInput: string) => {
+    // Scripted conversation flow
+    const scriptedFlow = [
+      // Step 1: User asks about first-time activities
+      {
+        userMessage: "Hi! We arrive the afternoon of July 15. Any must-do activities for first-timers?",
+        assistantResponse: {
+          content: "Absolutely! Here are three popular options for a 5-day visit:\n\nEvening Canal Cruise – 90-minute boat tour with cheese & wine (€42 pp).\n\nRijksmuseum Fast-Track Ticket – Skip the line, includes audio guide (€25 pp).\n\nCountryside Bike Tour – Half-day ride through windmills & villages (€55 pp).\nWould you like details—or shall I hold seats for one of them?",
+          sender: 'assistant',
+          timestamp: new Date(),
+        }
+      },
+      // Step 2: User wants to book canal cruise
+      {
+        userMessage: "The canal cruise sounds perfect for our first night. Can you book that?",
+        assistantResponse: {
+          content: "Sure thing! Quick question: do you prefer the 7 pm sunset sailing or the 9 pm city-lights sailing?",
+          sender: 'assistant',
+          timestamp: new Date(),
+        }
+      },
+      // Step 3: User chooses time
+      {
+        userMessage: "Let's do 7 pm, two adults.",
+        assistantResponse: {
+          content: "Got it ✔️\nBooking summary: Evening Canal Cruise, July 15 @ 19:00, 2 adults – €84 total.\nShall I confirm and add it to your trip?",
+          sender: 'assistant',
+          timestamp: new Date(),
+          icon: (
+            <div className="flex items-center gap-2 mt-2 text-booking-blue">
+              <Ticket className="h-5 w-5" />
+              <Calendar className="h-5 w-5" />
+              <span className="font-medium">Jul 15, 2025 · 19:00 · Evening Canal Cruise</span>
+            </div>
+          )
+        }
+      },
+      // Step 4: User confirms
+      {
+        userMessage: "Yes, please confirm.",
+        assistantResponse: {
+          content: "🎉 All set! Confirmation # CAN-71345. You'll board at Prins Hendrikkade 25—5 min walk from your hotel.\nAnything else I can arrange? Many travelers book airport transfers in advance to avoid taxi queues.",
+          sender: 'assistant',
+          timestamp: new Date(),
+        }
+      },
+      // Step 5: User asks about taxi
+      {
+        userMessage: "Good idea. What's the cost for a private taxi from Schiphol to our hotel on the 15th at 14:30?",
+        assistantResponse: {
+          content: "A private sedan for two guests is €48, including meet-&-greet at arrivals and luggage assistance. Book it?",
+          sender: 'assistant',
+          timestamp: new Date(),
+        }
+      },
+      // Step 6: User confirms taxi
+      {
+        userMessage: "Yes, go ahead.",
+        assistantResponse: {
+          content: "✅ Done! Transfer booked—confirmation # TX-55812. Driver contact details will appear here 24 hrs before arrival.\nYou now have:\n• Airport Private Taxi – Jul 15 14:30 – €48\n• Evening Canal Cruise – Jul 15 19:00 – €84\nTotal add-ons: €132\n\nNeed restaurant tips, museum tickets, or anything else?",
+          sender: 'assistant',
+          timestamp: new Date(),
+          icon: (
+            <div className="flex items-center gap-2 mt-2 text-booking-blue">
+              <Taxi className="h-5 w-5" />
+              <Calendar className="h-5 w-5" />
+              <span className="font-medium">Jul 15, 2025 · 14:30 · Airport Transfer</span>
+            </div>
+          )
+        }
+      },
+      // Step 7: User is done
+      {
+        userMessage: "That covers it for now—thanks a lot!",
+        assistantResponse: {
+          content: "My pleasure. Have a fantastic time in Amsterdam! Chat with me anytime if you need more help. 🌷",
+          sender: 'assistant',
+          timestamp: new Date(),
+        }
+      },
+    ];
+
+    // If we're following the script
+    if (scriptStep < scriptedFlow.length) {
+      const currentStep = scriptedFlow[scriptStep];
+      
+      // Add the scripted user message if this is the first message
+      if (scriptStep === 0 || userInput.toLowerCase().includes(currentStep.userMessage.toLowerCase().substring(0, 10))) {
+        // Add user message from script
+        const userMessage: MessageProps = {
+          content: currentStep.userMessage,
+          sender: 'user',
+          timestamp: new Date(),
+        };
+        
+        setMessages(prev => [...prev, userMessage]);
+        setIsTyping(true);
+        
+        // Add assistant response after a delay
+        setTimeout(() => {
+          setIsTyping(false);
+          setMessages(prev => [...prev, currentStep.assistantResponse]);
+          
+          // If booking steps, trigger confetti effect
+          if (scriptStep === 3 || scriptStep === 5) {
+            setShowConfetti(true);
+            setTimeout(() => setShowConfetti(false), 3000);
+            
+            // Notify parent component about booking
+            if (scriptStep === 3) {
+              onBookActivity(canalCruiseOptions[0]);
+            } else if (scriptStep === 5) {
+              onBookActivity(transportOptions[0]);
+            }
+          }
+          
+          // Move to the next step
+          setScriptStep(scriptStep + 1);
+        }, 1000);
+        
+        return true;
+      }
+    }
+    
+    return false;
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (newMessage.trim() === '') return;
+    
+    // Try to continue the scripted conversation
+    const followingScript = continueScriptedConversation(newMessage);
+    
+    if (followingScript) {
+      setNewMessage('');
+      return;
+    }
     
     // Add user message
     const userMessage: MessageProps = {
@@ -429,8 +594,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
         <p className="text-xs text-gray-500">Amsterdam · Jul 15-20 · 2 adults</p>
       </div>
       
-      <ScrollArea className="flex-grow">
-        <div className="p-3 bg-gray-50">
+      <ScrollArea className="flex-grow relative h-[calc(100%-110px)]">
+        <div className="p-3 bg-gray-50 min-h-full">
           {messages.map((message, index) => (
             <ChatMessage 
               key={index} 

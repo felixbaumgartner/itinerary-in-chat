@@ -4,9 +4,8 @@ import { cn } from '@/lib/utils';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from '@/components/ui/button';
-import { Check, Calendar as CalendarIcon } from 'lucide-react';
+import { Check, Calendar as CalendarIcon, Clock, Sun } from 'lucide-react';
 import { Calendar } from "@/components/ui/calendar";
-import { format } from 'date-fns';
 
 export interface ActivityOption {
   id: string;
