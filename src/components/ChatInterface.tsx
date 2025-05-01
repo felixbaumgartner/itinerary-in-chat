@@ -138,6 +138,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
             sender={message.sender} 
             timestamp={message.timestamp}
             options={message.options}
+            onBookActivity={onBookActivity}
           />
         ))}
         

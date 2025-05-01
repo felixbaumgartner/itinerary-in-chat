@@ -26,14 +26,14 @@ interface ItineraryPanelProps {
 
 const ItineraryPanel: React.FC<ItineraryPanelProps> = ({ userContext, bookings }) => {
   return (
-    <div className="w-full lg:w-80 h-full bg-white border-r border-gray-200">
+    <div className="w-full bg-white rounded-lg shadow-md overflow-hidden">
       <div className="p-4 bg-booking-navy text-white">
         <h2 className="text-xl font-bold">Your Trip</h2>
-        <p className="text-sm opacity-80">Amsterdam, Netherlands</p>
+        <p className="text-sm opacity-80">{userContext.destination}</p>
       </div>
 
       <div className="p-4">
-        <Card className="mb-4">
+        <Card className="mb-4 border border-gray-200">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center">
               <Hotel className="h-5 w-5 mr-2 text-booking-blue" />
@@ -65,7 +65,7 @@ const ItineraryPanel: React.FC<ItineraryPanelProps> = ({ userContext, bookings }
           <div>
             <h3 className="font-medium text-sm text-gray-500 uppercase mb-2">Your Add-ons</h3>
             {bookings.map((booking, index) => (
-              <Card key={index} className="mb-3">
+              <Card key={index} className="mb-3 border border-gray-200">
                 <CardHeader className="py-2 px-3">
                   <CardTitle className="text-sm font-medium">{booking.type}</CardTitle>
                 </CardHeader>
