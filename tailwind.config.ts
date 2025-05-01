@@ -64,12 +64,13 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				},
 				booking: {
-					blue: '#006ce4',
-					lightBlue: '#e7f0ff',
-					yellow: '#feba02',
-					navy: '#003b95',
+					blue: '#003580',
+					navy: '#00224f',
+					button: '#0071c2',
+					buttonHover: '#00487a',
+					yellow: '#ffb700',
 					gray: '#f5f5f5',
-					darkGray: '#333333',
+					darkGray: '#262626',
 					green: '#008009'
 				}
 			},
