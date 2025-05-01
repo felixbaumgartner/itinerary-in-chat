@@ -136,11 +136,17 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
   });
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }
   };
 
   useEffect(() => {
-    scrollToBottom();
+    // Short delay to ensure DOM updates before scrolling
+    const timer = setTimeout(() => {
+      scrollToBottom();
+    }, 100);
+    return () => clearTimeout(timer);
   }, [messages]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -586,70 +592,72 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
   };
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="p-3 bg-white border-b">
+    <div className="flex flex-col h-full max-h-full">
+      <div className="p-3 bg-white border-b flex-shrink-0">
         <h2 className="text-base font-semibold text-booking-blue">Trip Assistant</h2>
         <p className="text-xs text-gray-500">Amsterdam · Jul 15-20 · 2 adults</p>
       </div>
       
-      <ScrollArea className="flex-grow relative h-[calc(100%-110px)]">
-        <div className="p-3 bg-gray-50 min-h-full">
-          {messages.map((message, index) => (
-            <ChatMessage 
-              key={index} 
-              content={message.content} 
-              sender={message.sender} 
-              timestamp={message.timestamp}
-              options={message.options}
-              onBookActivity={(activity) => {
-                // Start the booking flow when an activity is selected
-                setCurrentBooking({ activity });
-                setConversationState(prev => ({
-                  ...prev,
-                  waitingForDateSelection: true,
-                  lastResponseType: 'activity_selected'
-                }));
-                
-                // Add a message to prompt date selection
-                const tomorrow = addDays(new Date(), 1);
-                const nextWeek = addDays(new Date(), 7);
-                
-                setMessages(prev => [
-                  ...prev,
-                  {
-                    content: `Great choice! When would you like to visit ${activity.title}? Please select a date:`,
-                    sender: 'assistant',
-                    timestamp: new Date(),
-                    dateSelector: {
-                      startDate: tomorrow,
-                      endDate: nextWeek
+      <div className="flex-grow overflow-hidden relative h-[calc(100%-110px)]">
+        <ScrollArea className="h-full w-full absolute inset-0">
+          <div className="p-3 bg-gray-50 min-h-full">
+            {messages.map((message, index) => (
+              <ChatMessage 
+                key={index} 
+                content={message.content} 
+                sender={message.sender} 
+                timestamp={message.timestamp}
+                options={message.options}
+                onBookActivity={(activity) => {
+                  // Start the booking flow when an activity is selected
+                  setCurrentBooking({ activity });
+                  setConversationState(prev => ({
+                    ...prev,
+                    waitingForDateSelection: true,
+                    lastResponseType: 'activity_selected'
+                  }));
+                  
+                  // Add a message to prompt date selection
+                  const tomorrow = addDays(new Date(), 1);
+                  const nextWeek = addDays(new Date(), 7);
+                  
+                  setMessages(prev => [
+                    ...prev,
+                    {
+                      content: `Great choice! When would you like to visit ${activity.title}? Please select a date:`,
+                      sender: 'assistant',
+                      timestamp: new Date(),
+                      dateSelector: {
+                        startDate: tomorrow,
+                        endDate: nextWeek
+                      }
                     }
-                  }
-                ]);
-              }}
-              icon={message.icon}
-              timeSlots={message.timeSlots}
-              onTimeSelect={handleTimeSelect}
-              dateSelector={message.dateSelector}
-              onDateSelect={handleDateSelect}
-              typing={message.typing}
-            />
-          ))}
-          
-          {isTyping && (
-            <ChatMessage 
-              content="" 
-              sender="assistant" 
-              timestamp={new Date()} 
-              typing={true}
-            />
-          )}
-          
-          <div ref={messagesEndRef} />
-        </div>
-      </ScrollArea>
+                  ]);
+                }}
+                icon={message.icon}
+                timeSlots={message.timeSlots}
+                onTimeSelect={handleTimeSelect}
+                dateSelector={message.dateSelector}
+                onDateSelect={handleDateSelect}
+                typing={message.typing}
+              />
+            ))}
+            
+            {isTyping && (
+              <ChatMessage 
+                content="" 
+                sender="assistant" 
+                timestamp={new Date()} 
+                typing={true}
+              />
+            )}
+            
+            <div ref={messagesEndRef} className="h-1" />
+          </div>
+        </ScrollArea>
+      </div>
       
-      <form onSubmit={handleSubmit} className="p-2 bg-white border-t flex gap-2">
+      <form onSubmit={handleSubmit} className="p-2 bg-white border-t flex gap-2 flex-shrink-0">
         <Input
           type="text"
           placeholder="Type your message..."

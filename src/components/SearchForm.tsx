@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Search, Calendar, User } from 'lucide-react';
 import { Button } from "@/components/ui/button";
@@ -148,11 +147,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ onBookActivity }) => {
       {/* Trip Assistant Dialog - smaller and positioned in lower right */}
       <Dialog open={showConcierge} onOpenChange={handleDialogOpenChange}>
         <DialogContent className="sm:max-w-[400px] w-[95vw] h-[500px] max-h-[80vh] p-0 overflow-hidden fixed bottom-6 right-6 sm:bottom-8 sm:right-8 shadow-2xl rounded-lg">
-          <div className="flex flex-col h-full">
-            <div className="w-full h-full overflow-hidden">
-              <ChatInterface onBookActivity={onBookActivity} />
-            </div>
-          </div>
+          <ChatInterface onBookActivity={onBookActivity} />
         </DialogContent>
       </Dialog>
 
