@@ -3,11 +3,9 @@ import React, { useState } from 'react';
 import { Search, Calendar, User } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { 
-  Dialog,
-  DialogContent
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import SearchResults from './SearchResults';
+import { useToast } from '@/hooks/use-toast';
 import ChatInterface from './ChatInterface';
 
 interface SearchFormProps {
@@ -15,14 +13,33 @@ interface SearchFormProps {
 }
 
 const SearchForm: React.FC<SearchFormProps> = ({ onBookActivity }) => {
+  const { toast } = useToast();
   const [destination, setDestination] = useState('Amsterdam');
   const [dateRange, setDateRange] = useState('Jul 15 - Jul 20, 2025');
   const [guests, setGuests] = useState('2 adults · 2 children');
-  const [showTrip, setShowTrip] = useState(false);
+  const [showSearchResults, setShowSearchResults] = useState(false);
+  const [showConcierge, setShowConcierge] = useState(false);
+  const [bookedProperty, setBookedProperty] = useState<any>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setShowTrip(true);
+    setShowSearchResults(true);
+  };
+
+  const handleBookProperty = (property: any) => {
+    setBookedProperty(property);
+    setShowSearchResults(false);
+    
+    // Show success toast
+    toast({
+      title: "Booking confirmed!",
+      description: "Your stay at " + property.name + " is confirmed.",
+    });
+    
+    // Show concierge after a short delay
+    setTimeout(() => {
+      setShowConcierge(true);
+    }, 1500);
   };
 
   return (
@@ -68,7 +85,20 @@ const SearchForm: React.FC<SearchFormProps> = ({ onBookActivity }) => {
         </form>
       </div>
 
-      <Dialog open={showTrip} onOpenChange={setShowTrip}>
+      {/* Search Results Dialog */}
+      <Dialog open={showSearchResults} onOpenChange={setShowSearchResults}>
+        <DialogContent className="sm:max-w-[90vw] h-[90vh] p-4 overflow-auto">
+          <SearchResults 
+            destination={destination}
+            dateRange={dateRange}
+            guests={guests}
+            onBookProperty={handleBookProperty}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Concierge Chat Dialog - shown after booking */}
+      <Dialog open={showConcierge} onOpenChange={setShowConcierge}>
         <DialogContent className="sm:max-w-[80vw] h-[80vh] p-0 overflow-hidden">
           <div className="flex h-full">
             <div className="w-1/3 h-full overflow-auto border-r border-gray-200">
@@ -77,13 +107,15 @@ const SearchForm: React.FC<SearchFormProps> = ({ onBookActivity }) => {
                 <p className="text-sm opacity-80">{destination}</p>
               </div>
               <div className="p-4">
-                <div className="bg-white rounded-lg shadow-sm p-3 mb-4 border border-gray-200">
-                  <div className="font-medium mb-2">Hotel Amsterdam Central</div>
-                  <div className="text-sm text-gray-500">Jul 15 - Jul 20, 2025</div>
-                  <div className="text-sm text-gray-500">2 adults · 2 children</div>
-                </div>
+                {bookedProperty && (
+                  <div className="bg-white rounded-lg shadow-sm p-3 mb-4 border border-gray-200">
+                    <div className="font-medium mb-2">{bookedProperty.name}</div>
+                    <div className="text-sm text-gray-500">{dateRange}</div>
+                    <div className="text-sm text-gray-500">{guests}</div>
+                  </div>
+                )}
                 <p className="text-sm text-gray-500 font-medium mb-2">
-                  Chat with our trip assistant to discover and book activities, dining, and transportation!
+                  Need help planning the rest of your Amsterdam trip? Chat with our AI Concierge!
                 </p>
               </div>
             </div>

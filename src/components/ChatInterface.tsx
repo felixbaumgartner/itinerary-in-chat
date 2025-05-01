@@ -43,7 +43,7 @@ interface ChatInterfaceProps {
 const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
   const [messages, setMessages] = useState<MessageProps[]>([
     {
-      content: "Hello! I'm your Booking.com travel assistant. I see you're staying at Hotel Amsterdam Central from July 15-20 with 2 adults and 2 children. How can I help you plan the rest of your trip?",
+      content: "Congratulations on booking your stay! Need help planning the rest of your Amsterdam trip? I can suggest family-friendly activities, restaurants, or transportation options.",
       sender: 'assistant',
       timestamp: new Date(),
     }
@@ -106,6 +106,29 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
           ...prev, 
           {
             content: `The Anne Frank House is one of Amsterdam's most significant museums. It's where Anne Frank and her family hid during WWII and where she wrote her famous diary.\n\nTickets cost €14 per person, and I recommend booking in advance as it's very popular. They offer special family-friendly tours at 10:00 AM and 3:00 PM.\n\nWould you like me to check availability for your dates (July 15-20)?`,
+            sender: 'assistant',
+            timestamp: new Date()
+          }
+        ]);
+      } else if (newMessage.toLowerCase().includes('restaurant') || 
+                newMessage.toLowerCase().includes('eat') ||
+                newMessage.toLowerCase().includes('food')) {
+        
+        setMessages(prev => [
+          ...prev, 
+          {
+            content: "Amsterdam has amazing dining options! With children, I'd recommend:\n\n1. Pancake Bakery - Traditional Dutch pancakes with sweet and savory options.\n\n2. Foodhallen - Indoor food market with lots of stalls to choose from.\n\n3. Pasta e Basta - Italian restaurant where the staff sing opera!\n\nWould you like me to make a reservation at any of these for your stay?",
+            sender: 'assistant',
+            timestamp: new Date()
+          }
+        ]);
+      } else if (newMessage.toLowerCase().includes('transport') || 
+                newMessage.toLowerCase().includes('getting around')) {
+        
+        setMessages(prev => [
+          ...prev, 
+          {
+            content: "Amsterdam is very easy to navigate! The best options are:\n\n1. Public Transport - Get an I Amsterdam City Card for unlimited access to public transport plus free entry to many museums.\n\n2. Bicycle Rental - Amsterdam is famous for cycling. Family bikes are available.\n\n3. Canal Boats - A hop-on-hop-off canal cruise is a fun way to see the city.\n\nWould you like me to arrange any of these for you?",
             sender: 'assistant',
             timestamp: new Date()
           }
