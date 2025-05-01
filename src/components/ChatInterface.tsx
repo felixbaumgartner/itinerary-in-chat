@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { SendIcon, Calendar, Ticket } from 'lucide-react';
@@ -123,6 +124,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
   const [showConfetti, setShowConfetti] = useState(false);
   const [currentBooking, setCurrentBooking] = useState<BookingDetails | null>(null);
   const [scriptStep, setScriptStep] = useState(0);
+  const [waitingForFinalConfirmation, setWaitingForFinalConfirmation] = useState(false);
+  const [pendingBooking, setPendingBooking] = useState<ActivityOption | null>(null);
   
   // Track conversation state to avoid repetitive responses
   const [conversationState, setConversationState] = useState({
@@ -151,6 +154,67 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNewMessage(e.target.value);
+  };
+
+  const handleConfirmation = (confirmed: boolean) => {
+    // Add user's selection as a message
+    const userMessage: MessageProps = {
+      content: confirmed ? "Yes, I confirm the booking." : "No, cancel the booking.",
+      sender: 'user',
+      timestamp: new Date(),
+    };
+    
+    setMessages(prev => [...prev, userMessage]);
+    setIsTyping(true);
+    
+    // Update waiting state
+    setWaitingForFinalConfirmation(false);
+    
+    setTimeout(() => {
+      setIsTyping(false);
+      
+      if (confirmed && pendingBooking) {
+        // Process the booking
+        onBookActivity(pendingBooking);
+        setShowConfetti(true);
+        setTimeout(() => setShowConfetti(false), 3000);
+        
+        // Confirmation message
+        setMessages(prev => [
+          ...prev,
+          {
+            content: `🎉 Booking confirmed! Your ${pendingBooking.title} has been booked successfully. You'll receive a confirmation email with all the details shortly. Is there anything else I can help you with?`,
+            sender: 'assistant',
+            timestamp: new Date(),
+            icon: (
+              <div className="flex items-center gap-2 mt-2 text-booking-blue">
+                <Ticket className="h-5 w-5" />
+                <Calendar className="h-5 w-5" />
+                <span className="font-medium">Booking confirmed!</span>
+              </div>
+            )
+          }
+        ]);
+      } else {
+        // Cancellation message
+        setMessages(prev => [
+          ...prev,
+          {
+            content: "No problem. The booking has been cancelled. Is there anything else you'd like to explore instead?",
+            sender: 'assistant',
+            timestamp: new Date(),
+          }
+        ]);
+      }
+      
+      // Clear pending booking
+      setPendingBooking(null);
+      
+      // Move to next step if in script
+      if (scriptStep === 4 || scriptStep === 6) {
+        setScriptStep(scriptStep + 1);
+      }
+    }, 1000);
   };
 
   const handleDateSelect = (date: Date | undefined) => {
@@ -226,41 +290,25 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
     setConversationState(prev => ({
       ...prev,
       waitingForTimeSelection: false,
-      lastResponseType: 'booking_confirmation'
+      lastResponseType: 'booking_confirmation_request'
     }));
     
-    // Simulate AI response for booking confirmation
+    // Ask for confirmation before finalizing the booking
     setTimeout(() => {
       setIsTyping(false);
       
       // Format the date string for display
       const dateString = updatedBooking.date ? format(updatedBooking.date, "MMMM d, yyyy") : "selected date";
       
-      // Create a formatted weather info and icon without using Sun component
-      const weatherInfo = (
-        <div className="flex items-center gap-2 mt-2 text-booking-blue">
-          <Calendar className="h-5 w-5" />
-          <Ticket className="h-5 w-5" />
-          <span className="font-medium">{dateString} · {updatedBooking.time} · 25°C sunny</span>
-        </div>
-      );
-      
       setMessages(prev => [
         ...prev,
         {
-          content: `Perfect! I've booked your visit to ${updatedBooking.activity.title} for ${dateString} at ${updatedBooking.time}. You'll receive a confirmation email with your e-tickets shortly. The weather is expected to be 25°C and sunny, so don't forget sunscreen! Is there anything else you'd like help with for your Amsterdam trip?`,
+          content: `You're about to book ${updatedBooking.activity.title} for ${dateString} at ${updatedBooking.time}. The price is ${updatedBooking.activity.price}. Would you like to confirm this booking?`,
           sender: 'assistant',
           timestamp: new Date(),
-          icon: weatherInfo
+          confirmationActions: true
         }
       ]);
-      
-      // Book the activity via callback
-      if (onBookActivity && updatedBooking.activity) {
-        onBookActivity(updatedBooking.activity);
-        setShowConfetti(true);
-        setTimeout(() => setShowConfetti(false), 3000);
-      }
     }, 1500);
   };
 
@@ -290,7 +338,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
       {
         userMessage: "Let's do 7 pm, two adults.",
         assistantResponse: {
-          content: "Got it ✔️\nBooking summary: Evening Canal Cruise, July 15 @ 19:00, 2 adults – €84 total.\nShall I confirm and add it to your trip?",
+          content: "Got it! Booking summary: Evening Canal Cruise, July 15 @ 19:00, 2 adults – €84 total.\nShall I confirm and add it to your trip?",
           sender: 'assistant' as 'assistant',
           timestamp: new Date(),
           icon: (
@@ -302,27 +350,38 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
           )
         }
       },
-      // Step 4: User confirms
+      // Step 4: User says yes, ask for confirmation
       {
         userMessage: "Yes, please confirm.",
+        assistantResponse: {
+          content: "Before I finalize this booking, please confirm: \n\nEvening Canal Cruise\nJuly 15 @ 19:00\n2 adults\nTotal: €84\n\nWould you like to confirm this booking?",
+          sender: 'assistant' as 'assistant',
+          timestamp: new Date(),
+          confirmationActions: true
+        }
+      },
+      // Step 5: System confirms booking after user confirms
+      {
+        userMessage: "Yes, I confirm the booking.",
         assistantResponse: {
           content: "🎉 All set! Confirmation # CAN-71345. You'll board at Prins Hendrikkade 25—5 min walk from your hotel.\nAnything else I can arrange? Many travelers book airport transfers in advance to avoid taxi queues.",
           sender: 'assistant' as 'assistant',
           timestamp: new Date(),
         }
       },
-      // Step 5: User asks about taxi
+      // Step 6: User asks about taxi
       {
         userMessage: "Good idea. What's the cost for a private taxi from Schiphol to our hotel on the 15th at 14:30?",
         assistantResponse: {
-          content: "A private sedan for two guests is €48, including meet-&-greet at arrivals and luggage assistance. Book it?",
+          content: "A private sedan for two guests is €48, including meet-&-greet at arrivals and luggage assistance. Would you like to book this transfer?",
           sender: 'assistant' as 'assistant',
           timestamp: new Date(),
+          confirmationActions: true
         }
       },
-      // Step 6: User confirms taxi
+      // Step 7: System confirms taxi after user confirms
       {
-        userMessage: "Yes, go ahead.",
+        userMessage: "Yes, I confirm the booking.",
         assistantResponse: {
           content: "✅ Done! Transfer booked—confirmation # TX-55812. Driver contact details will appear here 24 hrs before arrival.\nYou now have:\n• Airport Private Taxi – Jul 15 14:30 – €48\n• Evening Canal Cruise – Jul 15 19:00 – €84\nTotal add-ons: €132\n\nNeed restaurant tips, museum tickets, or anything else?",
           sender: 'assistant' as 'assistant',
@@ -336,7 +395,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
           )
         }
       },
-      // Step 7: User is done
+      // Step 8: User is done
       {
         userMessage: "That covers it for now—thanks a lot!",
         assistantResponse: {
@@ -368,21 +427,17 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
           setIsTyping(false);
           setMessages(prev => [...prev, currentStep.assistantResponse]);
           
-          // If booking steps, trigger confetti effect
-          if (scriptStep === 3 || scriptStep === 5) {
-            setShowConfetti(true);
-            setTimeout(() => setShowConfetti(false), 3000);
-            
-            // Notify parent component about booking
-            if (scriptStep === 3) {
-              onBookActivity(canalCruiseOptions[0]);
-            } else if (scriptStep === 5) {
-              onBookActivity(transportOptions[0]);
-            }
+          // If we're at step 3 or 6, we need to wait for confirmation instead of auto-proceeding
+          if (scriptStep === 3) {
+            setPendingBooking(canalCruiseOptions[0]);
+            setWaitingForFinalConfirmation(true);
+          } else if (scriptStep === 6) {
+            setPendingBooking(transportOptions[0]);
+            setWaitingForFinalConfirmation(true);
+          } else {
+            // Move to the next step for other steps
+            setScriptStep(scriptStep + 1);
           }
-          
-          // Move to the next step
-          setScriptStep(scriptStep + 1);
         }, 1000);
         
         return true;
@@ -433,6 +488,38 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
           }
         ]);
       }, 1000);
+      
+      return;
+    }
+    
+    // Handle waiting for final confirmation state
+    if (waitingForFinalConfirmation) {
+      const lowerCaseMessage = newMessage.toLowerCase();
+      
+      // Check if the user is confirming or cancelling
+      if (lowerCaseMessage.includes('yes') || 
+          lowerCaseMessage.includes('confirm') || 
+          lowerCaseMessage.includes('ok') || 
+          lowerCaseMessage.includes('sure')) {
+        handleConfirmation(true);
+      } else if (lowerCaseMessage.includes('no') || 
+                lowerCaseMessage.includes('cancel') || 
+                lowerCaseMessage.includes('don\'t')) {
+        handleConfirmation(false);
+      } else {
+        // Unclear response
+        setIsTyping(false);
+        
+        setMessages(prev => [
+          ...prev,
+          {
+            content: "I didn't quite catch that. Would you like to confirm this booking? Please respond with yes or no.",
+            sender: 'assistant',
+            timestamp: new Date(),
+            confirmationActions: true
+          }
+        ]);
+      }
       
       return;
     }
@@ -598,8 +685,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
         <p className="text-xs text-gray-500">Amsterdam · Jul 15-20 · 2 adults</p>
       </div>
       
-      <div className="flex-grow overflow-hidden relative h-[calc(100%-110px)]">
-        <ScrollArea className="h-full w-full absolute inset-0">
+      <div className="flex-grow overflow-hidden relative">
+        <ScrollArea className="h-full w-full absolute inset-0 pb-16">
           <div className="p-3 bg-gray-50 min-h-full">
             {messages.map((message, index) => (
               <ChatMessage 
@@ -640,6 +727,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
                 dateSelector={message.dateSelector}
                 onDateSelect={handleDateSelect}
                 typing={message.typing}
+                confirmationActions={message.confirmationActions}
+                onConfirm={() => handleConfirmation(true)}
+                onCancel={() => handleConfirmation(false)}
               />
             ))}
             
@@ -657,7 +747,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
         </ScrollArea>
       </div>
       
-      <form onSubmit={handleSubmit} className="p-2 bg-white border-t flex gap-2 flex-shrink-0">
+      <form onSubmit={handleSubmit} className="p-2 bg-white border-t flex gap-2 absolute bottom-0 left-0 right-0">
         <Input
           type="text"
           placeholder="Type your message..."

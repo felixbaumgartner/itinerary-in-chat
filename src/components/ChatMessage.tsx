@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from '@/components/ui/button';
-import { Calendar as CalendarIcon, Ticket } from 'lucide-react';
+import { Calendar as CalendarIcon, Ticket, Check, X } from 'lucide-react';
 import { Calendar } from "@/components/ui/calendar";
 
 export interface ActivityOption {
@@ -34,6 +34,9 @@ export interface MessageProps {
   onDateSelect?: (date: Date | undefined) => void;
   timeSlots?: string[];
   onTimeSelect?: (time: string) => void;
+  confirmationActions?: boolean;
+  onConfirm?: () => void;
+  onCancel?: () => void;
 }
 
 const ChatMessage: React.FC<MessageProps> = ({
@@ -47,7 +50,10 @@ const ChatMessage: React.FC<MessageProps> = ({
   dateSelector,
   onDateSelect,
   timeSlots,
-  onTimeSelect
+  onTimeSelect,
+  confirmationActions,
+  onConfirm,
+  onCancel
 }) => {
   const isUser = sender === 'user';
   const formattedTime = timestamp.toLocaleTimeString([], { 
@@ -74,7 +80,7 @@ const ChatMessage: React.FC<MessageProps> = ({
     )}>
       <div className={cn(
         "max-w-[80%]",
-        !isUser && (options || dateSelector || timeSlots) && "w-full"
+        !isUser && (options || dateSelector || timeSlots || confirmationActions) && "w-full"
       )}>
         <div className={cn(
           "px-4 py-3 rounded-2xl",
@@ -93,6 +99,28 @@ const ChatMessage: React.FC<MessageProps> = ({
             </>
           )}
         </div>
+
+        {/* Confirmation Actions */}
+        {confirmationActions && onConfirm && onCancel && (
+          <div className="mt-3 flex gap-3 justify-center">
+            <Button 
+              variant="outline" 
+              className="bg-green-50 hover:bg-green-100 text-green-700 border-green-300 flex gap-2"
+              onClick={onConfirm}
+            >
+              <Check className="h-4 w-4" />
+              Confirm Booking
+            </Button>
+            <Button 
+              variant="outline" 
+              className="bg-red-50 hover:bg-red-100 text-red-700 border-red-300 flex gap-2"
+              onClick={onCancel}
+            >
+              <X className="h-4 w-4" />
+              Cancel
+            </Button>
+          </div>
+        )}
 
         {/* Date Selector */}
         {dateSelector && onDateSelect && (
@@ -180,4 +208,3 @@ const ChatMessage: React.FC<MessageProps> = ({
 };
 
 export default ChatMessage;
-
