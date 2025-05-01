@@ -23,6 +23,7 @@ export interface MessageProps {
   options?: ActivityOption[];
   typing?: boolean;
   onBookActivity?: (activity: ActivityOption) => void;
+  icon?: React.ReactNode;
 }
 
 const ChatMessage: React.FC<MessageProps> = ({
@@ -31,7 +32,8 @@ const ChatMessage: React.FC<MessageProps> = ({
   timestamp,
   options,
   typing = false,
-  onBookActivity
+  onBookActivity,
+  icon
 }) => {
   const isUser = sender === 'user';
   const formattedTime = timestamp.toLocaleTimeString([], { 
@@ -65,7 +67,10 @@ const ChatMessage: React.FC<MessageProps> = ({
               <div className="w-2 h-2 bg-gray-600 rounded-full animate-pulse delay-300"></div>
             </div>
           ) : (
-            <div className="whitespace-pre-line">{content}</div>
+            <>
+              <div className="whitespace-pre-line">{content}</div>
+              {icon && <div className="mt-2">{icon}</div>}
+            </>
           )}
         </div>
 

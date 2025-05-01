@@ -1,6 +1,5 @@
-
 import React, { useState, useRef, useEffect } from 'react';
-import { SendIcon } from 'lucide-react';
+import { SendIcon, Calendar, Sun } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import ChatMessage, { MessageProps, ActivityOption } from './ChatMessage';
@@ -52,6 +51,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
   const [newMessage, setNewMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [selectedActivity, setSelectedActivity] = useState<ActivityOption | null>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -85,9 +85,58 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
     setTimeout(() => {
       setIsTyping(false);
       
-      if (newMessage.toLowerCase().includes('activities') || 
-          newMessage.toLowerCase().includes('things to do') ||
-          newMessage.toLowerCase().includes('family')) {
+      const lowerCaseMessage = newMessage.toLowerCase();
+      
+      // Check if user is asking about availability
+      if (lowerCaseMessage.includes('availability') || 
+          lowerCaseMessage.includes('available') || 
+          lowerCaseMessage.includes('check') || 
+          lowerCaseMessage.includes('anne frank') ||
+          lowerCaseMessage.includes('slot')) {
+        
+        // Set the selected activity for future reference
+        setSelectedActivity(sampleActivities[0]); // Anne Frank House
+        
+        setMessages(prev => [
+          ...prev, 
+          {
+            content: "Good news! I found a free slot for the Anne Frank House on July 17th at 10:00 AM. The weather forecast for that day is excellent (25°C and sunny) ☀️, making it a perfect day to visit. Would you like me to book it for you?",
+            sender: 'assistant',
+            timestamp: new Date(),
+            // Include an icon element to make the message more visually appealing
+            icon: (
+              <div className="flex items-center gap-2 mt-2 text-booking-blue">
+                <Sun className="h-5 w-5" />
+                <Calendar className="h-5 w-5" />
+                <span className="font-medium">July 17th · 10:00 AM · 25°C Sunny</span>
+              </div>
+            )
+          }
+        ]);
+      } 
+      // Check if user is confirming the booking
+      else if ((lowerCaseMessage.includes('yes') || 
+               lowerCaseMessage.includes('book it') ||
+               lowerCaseMessage.includes('sure') ||
+               lowerCaseMessage.includes('okay')) &&
+               selectedActivity) {
+        
+        // Book the activity
+        if (selectedActivity && onBookActivity) {
+          onBookActivity(selectedActivity);
+        }
+        
+        setMessages(prev => [
+          ...prev, 
+          {
+            content: `Perfect! I've booked your visit to the Anne Frank House for July 17th at 10:00 AM. You'll receive a confirmation email with your e-tickets shortly. The weather is expected to be 25°C and sunny, so don't forget sunscreen! Is there anything else you'd like help with for your Amsterdam trip?`,
+            sender: 'assistant',
+            timestamp: new Date()
+          }
+        ]);
+      } else if (lowerCaseMessage.includes('activities') || 
+          lowerCaseMessage.includes('things to do') ||
+          lowerCaseMessage.includes('family')) {
         
         setMessages(prev => [
           ...prev, 
@@ -98,20 +147,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
             options: sampleActivities
           }
         ]);
-      } else if (newMessage.toLowerCase().includes('anne frank') || 
-                newMessage.toLowerCase().includes('museum')) {
-        
-        setMessages(prev => [
-          ...prev, 
-          {
-            content: `The Anne Frank House is one of Amsterdam's most significant museums. It's where Anne Frank and her family hid during WWII and where she wrote her famous diary.\n\nTickets cost €14 per person, and I recommend booking in advance as it's very popular. They offer special family-friendly tours at 10:00 AM and 3:00 PM.\n\nWould you like me to check availability for your dates (July 15-20)?`,
-            sender: 'assistant',
-            timestamp: new Date()
-          }
-        ]);
-      } else if (newMessage.toLowerCase().includes('restaurant') || 
-                newMessage.toLowerCase().includes('eat') ||
-                newMessage.toLowerCase().includes('food')) {
+      } else if (lowerCaseMessage.includes('restaurant') || 
+                lowerCaseMessage.includes('eat') ||
+                lowerCaseMessage.includes('food')) {
         
         setMessages(prev => [
           ...prev, 
@@ -121,8 +159,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
             timestamp: new Date()
           }
         ]);
-      } else if (newMessage.toLowerCase().includes('transport') || 
-                newMessage.toLowerCase().includes('getting around')) {
+      } else if (lowerCaseMessage.includes('transport') || 
+                lowerCaseMessage.includes('getting around')) {
         
         setMessages(prev => [
           ...prev, 
@@ -132,8 +170,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
             timestamp: new Date()
           }
         ]);
-      } else if (newMessage.toLowerCase().includes('book') || 
-                newMessage.toLowerCase().includes('reserve')) {
+      } else if (lowerCaseMessage.includes('book') || 
+                lowerCaseMessage.includes('reserve')) {
         
         // Show booking confirmation
         const activityToBook = sampleActivities[0]; // Use Anne Frank House as default
@@ -176,6 +214,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onBookActivity }) => {
             timestamp={message.timestamp}
             options={message.options}
             onBookActivity={onBookActivity}
+            icon={message.icon}
           />
         ))}
         
